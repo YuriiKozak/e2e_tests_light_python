@@ -21,7 +21,7 @@ def test_open_home_page_and_login_with_invalid_credentials(page: Page, configs: 
     open_home_page(page, configs)
 
     password = Faker().password(length=10)
-    print("Generated random password: " + password)
+    print(f"Generated random password: {password}")
     login_user(page, configs.email, password)
 
     expect(page.locator("#content-desktop").get_by_text("Invalid email or password")).to_be_visible()
