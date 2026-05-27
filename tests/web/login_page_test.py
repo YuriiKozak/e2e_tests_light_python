@@ -3,9 +3,8 @@ from playwright.sync_api import Page
 
 from src.web.pages.HomePage import HomePage
 from src.web.pages.LoginPage import LoginPage
+from src.web.pages.ProjectsPage import ProjectsPage
 from tests.conftest import Configs
-
-TARGET_PROJECT = "Popopo"
 
 
 def test_login(page: Page, configs: Configs):
@@ -17,6 +16,9 @@ def test_login(page: Page, configs: Configs):
     login_page = LoginPage(page)
     login_page.is_loaded()
     login_page.login(configs.email, configs.password)
+
+    projects_page = ProjectsPage(page)
+    projects_page.is_loaded()
 
 
 def test_login_invalid(page: Page, configs: Configs):
