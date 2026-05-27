@@ -4,7 +4,7 @@ from playwright.sync_api import Page
 from src.web.pages.HomePage import HomePage
 from src.web.pages.LoginPage import LoginPage
 from src.web.pages.ProjectsPage import ProjectsPage
-from tests.conftest import Configs
+from tests.config_test import Configs
 
 
 def test_login(page: Page, configs: Configs):

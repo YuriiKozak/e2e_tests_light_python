@@ -1,20 +1,27 @@
 from faker import Faker
-from playwright.sync_api import Page
 
-from src.web.pages.NewProjectPage import NewProjectPage
-from src.web.pages.ProjectPage import ProjectPage
+from src.web.Application import Application
+from src.web.components.SideBar import SidebarTab
 
 
-def test_new_project_creation(page: Page, login):
+def test_new_project_creation(login, app: Application):
     project_title = Faker().company()
 
-    (NewProjectPage(page)
+    (app.new_project_page
      .open()
      .is_loaded()
      .fill_project_title(project_title)
      .click_create())
 
-    (ProjectPage(page)
+    (app.project_page
      .is_loaded()
      .project_title_is(project_title)
-     .close_read_me())
+     .close_read_me()
+     .side_bar
+     .is_loaded()
+     .open()
+     .navigate_to(SidebarTab.REQUIREMENTS)
+     .is_tab_active(SidebarTab.REQUIREMENTS)
+     .navigate_to(SidebarTab.TESTS)
+     .is_tab_active(SidebarTab.TESTS)
+     .close())
