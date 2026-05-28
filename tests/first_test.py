@@ -2,7 +2,7 @@ import pytest
 from faker import Faker
 from playwright.sync_api import Page, expect
 
-from tests.config_test import Configs
+from tests.conftest import Configs
 
 TARGET_PROJECT = "Popopo"
 
