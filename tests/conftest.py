@@ -1,12 +1,13 @@
 import os
 from dataclasses import dataclass
+from typing import Generator
 
 import pytest
 from dotenv import load_dotenv
-from playwright.sync_api import Page
+from playwright.sync_api import Error as PlaywrightError
+from playwright.sync_api import Page, BrowserContext
 
 from src.web.Application import Application
-from src.web.pages.LoginPage import LoginPage
 
 load_dotenv()
 
@@ -33,7 +34,7 @@ def browser_type_launch_args(browser_type_launch_args: dict) -> dict:
         **browser_type_launch_args,
         "channel": "chromium",
         "headless": False,
-        "slow_mo": 100,
+        "slow_mo": 300,
         "timeout": 30000,
     }
 
@@ -51,14 +52,39 @@ def browser_context_args(browser_context_args: dict) -> dict:
     }
 
 
+@pytest.fixture(scope="session")
+def context(browser, browser_context_args: dict) -> Generator[BrowserContext, None, None]:
+    context = browser.new_context(**browser_context_args)
+    yield context
+    context.close()
+
+
+@pytest.fixture(scope="session")
+def page(context: BrowserContext) -> Generator[Page, None, None]:
+    page = context.new_page()
+    yield page
+    page.close()
+
+
+@pytest.fixture(scope="function", autouse=True)
+def clear_browser_state(page: Page):
+    yield
+    try:
+        page.context.clear_cookies()
+        page.evaluate("() => { localStorage.clear(); sessionStorage.clear(); }")
+        page.wait_for_timeout(2000)
+    except PlaywrightError:
+        pass
+
+
 @pytest.fixture(scope="function")
 def app(page: Page) -> Application:
     return Application(page)
 
 
 @pytest.fixture(scope="function")
-def login(page: Page, configs: Configs):
-    login_page = LoginPage(page)
-    login_page.open()
-    login_page.is_loaded()
-    login_page.login(configs.email, configs.password)
+def login(configs: Configs, app: Application):
+    (app.login_page
+     .open()
+     .is_loaded()
+     .login(configs.email, configs.password))
