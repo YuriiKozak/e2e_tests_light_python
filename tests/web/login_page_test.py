@@ -53,8 +53,8 @@ invalid_login_test_data = [
 
 @pytest.mark.regression
 @pytest.mark.parametrize("email, password", invalid_login_test_data)
-def test_login_invalid(email: str, password: str, configs: Configs, app: Application):
-    (app.login_page
+def test_login_invalid(email: str, password: str, configs: Configs, session_app: Application):
+    (session_app.login_page
      .open()
      .is_loaded()
      .login(email, password)
