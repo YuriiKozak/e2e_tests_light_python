@@ -7,6 +7,9 @@
       <excludeFolder url="file://$MODULE_DIR$/tests/web/videos" />
       <excludeFolder url="file://$MODULE_DIR$/videos" />
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/.antigravitycli" />
+      <excludeFolder url="file://$MODULE_DIR$/tests/web/test-result" />
+      <excludeFolder url="file://$MODULE_DIR$/tests/web/videos" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.14 (e2e_tests_light)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

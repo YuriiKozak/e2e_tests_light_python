@@ -1,4 +1,6 @@
 # created by virtualenv automatically
+.antigravitycli/
+.idea/
 .venv/
 test-result/
 videos/

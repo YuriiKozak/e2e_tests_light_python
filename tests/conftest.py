@@ -4,10 +4,10 @@ from typing import Generator
 
 import pytest
 from dotenv import load_dotenv
+from playwright.sync_api import BrowserContext, Page
 from playwright.sync_api import Error as PlaywrightError
-from playwright.sync_api import Page, BrowserContext
 
-from src.web.Application import Application
+from src.web.application import Application
 
 load_dotenv()
 
@@ -29,7 +29,7 @@ def configs() -> Configs:
         return Configs(
             url=os.environ["URL"],
             email=os.environ["EMAIL"],
-            password=os.environ["PASSWORD"]
+            password=os.environ["PASSWORD"],
         )
     except KeyError as e:
         raise ValueError(
@@ -68,7 +68,9 @@ def browser_context_args(browser_context_args: dict, configs: Configs) -> dict:
 
 
 @pytest.fixture(scope="session")
-def session_context(browser, browser_context_args: dict) -> Generator[BrowserContext, None, None]:
+def session_context(
+    browser, browser_context_args: dict
+) -> Generator[BrowserContext, None, None]:
     """Session-scoped browser context to avoid reopening the browser between tests."""
     context = browser.new_context(**browser_context_args)
     yield context
@@ -100,7 +102,9 @@ def clear_session_page_state(request) -> Generator[None, None, None]:
         yield
         try:
             session_page.context.clear_cookies()
-            session_page.evaluate("() => { localStorage.clear(); sessionStorage.clear(); }")
+            session_page.evaluate(
+                "() => { localStorage.clear(); sessionStorage.clear(); }"
+            )
             session_page.wait_for_timeout(1000)
         except PlaywrightError:
             pass
@@ -120,7 +124,4 @@ def login(configs: Configs, app: Application) -> None:
     Fixture to perform a standard user login.
     Leverages the Page Object Pattern for maintainability.
     """
-    (app.login_page
-     .open()
-     .is_loaded()
-     .login(configs.email, configs.password))
+    (app.login_page.open().is_loaded().login(configs.email, configs.password))

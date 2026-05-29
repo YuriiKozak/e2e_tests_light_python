@@ -1,12 +1,12 @@
 import re
 from typing import Self
 
-from playwright.sync_api import Page, expect, Locator
+from playwright.sync_api import Locator, Page, expect
 
-from src.web.components.SidebarTabEnum import SidebarTab
+from src.web.components.sidebar_tab_enum import SidebarTab
 
 
-class SideBar:
+class Sidebar:
     def __init__(self, page: Page):
         self.page = page
 

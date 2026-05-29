@@ -11,6 +11,10 @@ class ProjectsPage:
         expect(self.page.get_by_role("heading", name="Projects")).to_be_visible()
         return self
 
+    def select_project(self, target_project: str) -> Self:
+        self.page.locator("#company_id").select_option(target_project)
+        return self
+
     def search_project(self, target_project: str) -> Self:
         expect(self.page.get_by_role("searchbox", name="search")).to_be_visible()
         self.page.locator("#content-desktop #search").fill(target_project)
