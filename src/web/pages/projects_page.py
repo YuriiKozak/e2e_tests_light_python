@@ -23,3 +23,13 @@ class ProjectsPage:
     def result_project(self, target_project: str) -> Self:
         expect(self.page.get_by_role("heading", name=target_project)).to_be_visible()
         return self
+
+    def project_is_hidden(self, target_project: str) -> Self:
+        expect(self.page.get_by_role("heading", name=target_project)).to_be_hidden()
+        return self
+
+    def empty_state_is_visible(self) -> Self:
+        expect(
+            self.page.get_by_text("You have not created any projects yet")
+        ).to_be_visible()
+        return self
