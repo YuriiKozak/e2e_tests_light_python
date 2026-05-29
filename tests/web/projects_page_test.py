@@ -1,3 +1,4 @@
+import pytest
 from playwright.sync_api import expect
 
 from src.web.application import Application
@@ -5,6 +6,7 @@ from src.web.application import Application
 target_project = "Popopo"
 
 
+@pytest.mark.regression
 def test_project_search(login, app: Application):
     (
         app.projects_page.is_loaded()
@@ -13,6 +15,7 @@ def test_project_search(login, app: Application):
     )
 
 
+@pytest.mark.regression
 def test_open_free_project(login, app: Application):
     (
         app.projects_page.is_loaded()

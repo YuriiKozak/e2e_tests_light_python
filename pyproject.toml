@@ -10,7 +10,7 @@ dependencies = [
     "colorama==0.4.6",
     "faker>=40.19.1",
     "greenlet==3.5.1",
-    "idna==3.16",
+    "idna==3.17",
     "iniconfig==2.3.0",
     "packaging==26.2",
     "playwright==1.60.0",
@@ -28,3 +28,22 @@ dependencies = [
     "typing-extensions==4.15.0",
     "urllib3==2.7.0",
 ]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py", "*_tests.py"]
+python_functions = ["test_*"]
+norecursedirs = [".git", ".venv", ".claude", "__pycache__", "build", "dist", "*.egg-info"]
+addopts = "-v -ra --strict-markers --tb=short --headed --tracing=retain-on-failure --screenshot=on --output=test-result/traces/ --html=test-result/report.html --self-contained-html"
+markers = [
+    "smoke: Quick smoke tests for basic functionality",
+    "regression: Full regression test suite",
+    "web: Web UI tests using Playwright",
+    "slow: Tests that take longer to execute"
+]
+console_output_style = "progress"
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"

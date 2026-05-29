@@ -2,12 +2,13 @@ import pytest
 from faker import Faker
 
 from src.web.application import Application
-from tests.conftest import Configs
+from tests.fixtures.config import Configs
 
 fake = Faker()
 
 
 @pytest.mark.smoke
+@pytest.mark.regression
 def test_login(configs: Configs, app: Application):
     (app.home_page.open().is_loaded().click_login())
 
