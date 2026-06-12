@@ -29,7 +29,6 @@ def browser_context_args(browser_context_args: dict, configs: Configs) -> dict:
         "viewport": {"width": 1920, "height": 1080},
         "locale": "uk-UA",
         "timezone_id": "Europe/Kyiv",
-        "record_video_dir": "videos/",
         "permissions": ["geolocation"],
     }
     if STORAGE_STATE_PATH.exists():
