@@ -6,6 +6,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
+from web.selenium.pages.login_page import LoginPage
+from web.selenium.pages.login_page_v2 import LoginPageV2
+
 FREE_PROJECTS = "Free Projects"
 TARGET_PROJECT = "Popopo"
 
@@ -45,21 +48,19 @@ def test_project_search(driver: WebDriver, configs: Configs):
     )
 
 
-# @pytest.mark.regression
-# def test_project_search(driver: WebDriver, login, app: Application):
-#     (
-#         app.projects_page.is_loaded()
-#         .search_project(TARGET_PROJECT)
-#         .result_project(TARGET_PROJECT)
-#     )
-#
-#
-# @pytest.mark.regression
-# def test_open_free_project(driver: WebDriver, login, app: Application):
-#     (
-#         app.projects_page.is_loaded()
-#         .select_project(FREE_PROJECTS)
-#         .search_project(TARGET_PROJECT)
-#         .project_is_hidden(TARGET_PROJECT)
-#         .empty_state_is_visible()
-#     )
+@pytest.mark.regression
+def test_login_with_page_object_v1(driver: WebDriver, configs: Configs):
+    login_page = LoginPage(driver)
+    login_page.open(configs.url)
+    login_page.is_loaded()
+    login_page.login(email=configs.email, password=configs.password)
+    login_page.should_see_success_message()
+
+
+@pytest.mark.regression
+def test_login_with_page_object_v2(driver: WebDriver, configs: Configs):
+    login_page = LoginPageV2(driver)
+    login_page.open(configs.url)
+    login_page.is_loaded()
+    login_page.login(email=configs.email, password=configs.password)
+    login_page.should_see_success_message()
