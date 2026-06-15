@@ -28,7 +28,7 @@ class BasePage:
     def find_visible(self, locator: Locator) -> WebElement:
         return self.wait.for_visible(locator)
 
-    def find_clickable(self, locator: Locator) -> WebElement:
+    def find_clickable(self, locator: Locator) -> WebElement | bool | tuple[str, str]:
         return self.wait.for_clickable(locator)
 
     def click(self, target: LocatorOrElement) -> Self:

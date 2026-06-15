@@ -4,28 +4,29 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from src.web.selenium.core.base_page import BasePage
+from src.web.selenium.core.waits import Locator
 
 
 class LoginPage(BasePage):
-    EMAIL_INPUT: tuple[By, str] = (By.CSS_SELECTOR, "#content-desktop #user_email")
-    PASSWORD_INPUT: tuple[By, str] = (
+    EMAIL_INPUT: Locator = (By.CSS_SELECTOR, "#content-desktop #user_email")
+    PASSWORD_INPUT: Locator = (
         By.CSS_SELECTOR,
         "#content-desktop #user_password",
     )
-    REMEMBER_ME_CHECKBOX: tuple[By, str] = (By.CSS_SELECTOR, "#user_remember_me")
-    SIGN_IN_BUTTON: tuple[By, str] = (
+    REMEMBER_ME_CHECKBOX: Locator = (By.CSS_SELECTOR, "#user_remember_me")
+    SIGN_IN_BUTTON: Locator = (
         By.CSS_SELECTOR,
         "#content-desktop [value='Sign In']",
     )
-    SUCCESS_MESSAGE: tuple[By, str] = (
+    SUCCESS_MESSAGE: Locator = (
         By.CSS_SELECTOR,
         "#content-desktop .common-flash-success",
     )
-    ERROR_MESSAGE: tuple[By, str] = (
+    ERROR_MESSAGE: Locator = (
         By.CSS_SELECTOR,
         "#content-desktop .common-flash-alert",
     )
-    INVALID_LOGIN_TEXT: tuple[By, str] = (
+    INVALID_LOGIN_TEXT: Locator = (
         By.XPATH,
         "//*[contains(text(), 'Invalid Email or password')]",
     )
