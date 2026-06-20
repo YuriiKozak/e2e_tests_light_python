@@ -2,7 +2,7 @@ import pytest
 from faker import Faker
 
 from src.web.application import Application
-from tests.fixtures.config import Configs
+from tests.fixtures.configs import Configs
 
 fake = Faker()
 

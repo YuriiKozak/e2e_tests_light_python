@@ -1,0 +1,5420 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Testomat.io Public API v2",
+    "version": "2.0.0",
+    "description": "Public API v2 for managing test management resources in Testomat.io.\nAll endpoints require Bearer token authentication and a project ID path parameter.\n\n> [!WARNING] This is **Testomat.io Public API v2**. If you are here for the API v1, see [Legacy API](/docs/openapi) reference.\n\n> [!NOTE] Importing API (1.0.0) is available at <a href=\"https://testomatio.github.io/check-tests\">testomatio.github.io/check-tests</a> repo\n\n> [!NOTE] Reporting API (1.0.0) is available at <a href=\"https://testomatio.github.io/reporter\">testomatio.github.io/reporter</a> repo\n\n> [!NOTE] **MCP Server** Reference is available at <a href=\"https://github.com/testomatio/mcp\">MCP Server Repository on GitHub</a>\n"
+  },
+  "servers": [
+    {
+      "url": "https://app.testomat.io"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Projects",
+      "description": "Project configuration and metadata"
+    },
+    {
+      "name": "Tests",
+      "description": "Manage test cases"
+    },
+    {
+      "name": "Suites",
+      "description": "Manage test suites (folders)"
+    },
+    {
+      "name": "Plans",
+      "description": "Manage test plans"
+    },
+    {
+      "name": "Runs",
+      "description": "Manage test runs"
+    },
+    {
+      "name": "Testruns",
+      "description": "Manage individual test results within runs"
+    },
+    {
+      "name": "Rungroups",
+      "description": "Manage run groups (environments/configurations)"
+    },
+    {
+      "name": "Steps",
+      "description": "Manage reusable test steps"
+    },
+    {
+      "name": "Snippets",
+      "description": "Manage reusable step snippets"
+    },
+    {
+      "name": "Labels",
+      "description": "Manage labels and custom fields"
+    },
+    {
+      "name": "Tags",
+      "description": "Browse tags and tagged tests"
+    },
+    {
+      "name": "Milestones",
+      "description": "Browse milestones visible to the project"
+    },
+    {
+      "name": "Issues",
+      "description": "Manage linked issues (generic and Jira)"
+    },
+    {
+      "name": "Requirements",
+      "description": "Browse requirements linked to the project"
+    },
+    {
+      "name": "Sessions",
+      "description": "Group multiple API changes under a single history entry"
+    },
+    {
+      "name": "Analytics",
+      "description": "Analytics endpoints return either lists of tests matching a criterion\n(`/analytics/tests/{kind}`) or aggregated stats\n(`/analytics/stats/{kind}`). Both families accept a common filter set:\noptional TQL `q`, time window (`days` or `from`/`to`), and execution\nenvironments `envs`. Requires the `api_analytics` subscription feature.\n"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "API token from Testomat.io project settings"
+      }
+    },
+    "parameters": {
+      "projectId": {
+        "name": "project_id",
+        "in": "path",
+        "required": true,
+        "description": "Project slug identifier",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "resourceId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "page": {
+        "name": "page",
+        "in": "query",
+        "description": "Page number (minimum 1)",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        }
+      },
+      "perPage": {
+        "name": "per_page",
+        "in": "query",
+        "description": "Items per page (1-100)",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 30
+        }
+      },
+      "sessionHash": {
+        "name": "X-Session-Hash",
+        "in": "header",
+        "required": false,
+        "description": "Session hash returned by POST /sessions. When present, all changes\nmade in this request are grouped under the session's parent version\nin project history.\n",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "analyticsTestKind": {
+        "name": "kind",
+        "in": "path",
+        "required": true,
+        "description": "Test-level analytics report",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "flaky",
+            "slow",
+            "failing",
+            "evergreen",
+            "never-executed",
+            "skipped",
+            "failures",
+            "defects",
+            "issues"
+          ]
+        }
+      },
+      "analyticsStatsKind": {
+        "name": "kind",
+        "in": "path",
+        "required": true,
+        "description": "Aggregated analytics report",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "project-summary",
+            "runs-summary",
+            "success-rate-by-date",
+            "automation-rate-by-date",
+            "testruns-by-date",
+            "priority-by-date"
+          ]
+        }
+      },
+      "analyticsQ": {
+        "name": "q",
+        "in": "query",
+        "required": false,
+        "description": "TQL (Testomat.io Query Language) filter for tests, e.g.\n`priority == 'high' AND tag IN ['@smoke']`. Resolved to matching\ntest IDs and applied to both test-level and stats reports.\n",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "analyticsDays": {
+        "name": "days",
+        "in": "query",
+        "required": false,
+        "description": "Lookback window in days (default 30). Ignored when `from`/`to` are provided.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 30
+        }
+      },
+      "analyticsFrom": {
+        "name": "from",
+        "in": "query",
+        "required": false,
+        "description": "Inclusive start date (YYYY-MM-DD). Takes precedence over `days`.",
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "analyticsTo": {
+        "name": "to",
+        "in": "query",
+        "required": false,
+        "description": "Inclusive end date (YYYY-MM-DD).",
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "analyticsEnvs": {
+        "name": "envs",
+        "in": "query",
+        "required": false,
+        "description": "Comma-separated execution environments (e.g. `staging,production`).",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "schemas": {
+      "PaginationMeta": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "per_page": {
+            "type": "integer"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      },
+      "AnalyticsTestsResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "description": "Rows of tests matching the kind. Row shape varies per kind.\nCommon fields: `test_uid`, `title`, `suite_uid`, `suite_title`, `priority`, `executed_at`.\n`flaky` adds `flaky_rate`, `runStatuses`.\n`slow` adds `run_time`, `threshold`, `testrun_id`, `run_uid`, `run_title`, `status`.\n`failures` groups by error message.\n`issues` / `defects` group by linked JIRA issue.\n",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          },
+          "config": {
+            "type": "object",
+            "description": "Query configuration in effect (e.g. `min`/`max` for flaky, `threshold` for slow).",
+            "additionalProperties": true
+          },
+          "filter_values": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "AnalyticsStatsResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "description": "Aggregated rows. Shape depends on the stats kind (see `meta.data_keys`).\n`project-summary` and `runs-summary` return one row per project/run with 20+ fields.\n`*-by-date` kinds return one row per day keyed by `date`.\n",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "primary_key": {
+                "type": "string",
+                "nullable": true
+              },
+              "primary_label": {
+                "type": "string",
+                "nullable": true
+              },
+              "data_keys": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "is_empty": {
+                "type": "boolean"
+              }
+            }
+          },
+          "filter_values": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "ProjectInfo": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string",
+            "description": "Project slug identifier"
+          },
+          "framework": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "language": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "repository_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "artifacts_storage_enabled": {
+            "type": "boolean",
+            "description": "True when all required artifact storage credentials are configured"
+          },
+          "environments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string"
+                },
+                "slug": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "subscription": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Active subscription plan title (e.g. \"Enterprise\"). Null when no subscription is active."
+          },
+          "features": {
+            "type": "array",
+            "description": "Feature keys enabled by the active subscription (e.g. \"milestones\", \"analytics\", \"branches\").",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ci_profiles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "profile_name": {
+                  "type": "string"
+                },
+                "service": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "config": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "additionalProperties": true
+                },
+                "pass_testomatio_key": {
+                  "type": "boolean"
+                },
+                "pass_testomatio_url": {
+                  "type": "boolean"
+                },
+                "pass_run_id": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Test": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Public UID (e.g. \"@Txxxxx\")"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "test"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "emoji": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_shared": {
+            "type": "boolean"
+          },
+          "assigned_to": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email"
+          },
+          "priority": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "low",
+              "normal",
+              "important",
+              "high",
+              "critical",
+              null
+            ]
+          },
+          "public_title": {
+            "type": "string"
+          },
+          "clean_title": {
+            "type": "string"
+          },
+          "self_tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sync": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "position": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "suite_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Public UID of the parent suite"
+          },
+          "suite_title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Tag-stripped title of the parent suite"
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LabelAttachment"
+            }
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "URL to this test in Testomat.io (returned on create/update)"
+          }
+        }
+      },
+      "Suite": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Public UID"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "suite"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "emoji": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "public_title": {
+            "type": "string"
+          },
+          "is_shared": {
+            "type": "boolean"
+          },
+          "file_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Auto-detected: 'folder' if suite has children, 'file' otherwise"
+          },
+          "test_count": {
+            "type": "integer"
+          },
+          "assigned_to": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email"
+          },
+          "clean_title": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sync": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "file": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "File path associated with this suite"
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Public UID of the parent suite, or null for root suites"
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LabelAttachment"
+            }
+          },
+          "requirements": {
+            "type": "array",
+            "description": "Attached and global requirements for this suite",
+            "items": {
+              "$ref": "#/components/schemas/LinkedRequirement"
+            }
+          },
+          "children": {
+            "type": "array",
+            "description": "Nested child suites (present in tree responses when children exist)",
+            "items": {
+              "$ref": "#/components/schemas/Suite"
+            }
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "URL to this suite in Testomat.io (returned on create/update)"
+          }
+        }
+      },
+      "LinkedRequirement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ID (8-char)"
+          },
+          "title": {
+            "type": "string"
+          },
+          "source_type": {
+            "type": "string",
+            "enum": [
+              "jira",
+              "confluence",
+              "file",
+              "text"
+            ]
+          },
+          "global": {
+            "type": "boolean",
+            "description": "True if this is a global (project-level) requirement"
+          }
+        }
+      },
+      "Requirement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Public ID (8-char)"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "requirement"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "summary": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true,
+            "description": "Extended details or raw content of the requirement"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "description": "Processing message or error details"
+          },
+          "source_type": {
+            "type": "string",
+            "enum": [
+              "jira",
+              "confluence",
+              "file",
+              "text"
+            ]
+          },
+          "source_key": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processed",
+              "failed",
+              "outdated"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "global": {
+            "type": "boolean"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "project",
+              "suite",
+              "none"
+            ],
+            "description": "Scope level of the requirement"
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "URL to this requirement in Testomat.io (returned on create/update)"
+          }
+        }
+      },
+      "RequirementCreateInput": {
+        "type": "object",
+        "required": [
+          "title",
+          "source_type"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "source_type": {
+            "type": "string",
+            "enum": [
+              "jira",
+              "confluence",
+              "file",
+              "text"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "description": "Required for text requirements. Must be at least 500 characters."
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "global": {
+            "type": "boolean"
+          },
+          "confluence_url": {
+            "type": "string",
+            "description": "Required for confluence requirements"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "binary"
+            },
+            "description": "Files to attach to the requirement. Allowed extensions: pdf, doc, docx, xls, xlsx, csv, txt, md, html, xml, json, feature, png, jpg, jpeg, gif, svg, webp"
+          }
+        }
+      },
+      "RequirementUpdateInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "description": "Only applied for text requirements"
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "global": {
+            "type": "boolean"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "binary"
+            },
+            "description": "Files to attach to the requirement. Allowed extensions: pdf, doc, docx, xls, xlsx, csv, txt, md, html, xml, json, feature, png, jpg, jpeg, gif, svg, webp"
+          }
+        }
+      },
+      "Plan": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Public UID"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "plan"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "automated",
+              "mixed"
+            ],
+            "description": "Plan type"
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LabelAttachment"
+            }
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "URL to this plan in Testomat.io (returned on create/update)"
+          }
+        }
+      },
+      "Run": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Public UID"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "run"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "clean_title": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "automated",
+              "mixed"
+            ],
+            "description": "Run type"
+          },
+          "rungroup_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Public UID of the rungroup this run belongs to"
+          },
+          "plan_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Public UID of the plan this run created from"
+          },
+          "assigned_to": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email"
+          },
+          "assign_strategy": {
+            "type": "string",
+            "enum": [
+              "test",
+              "random",
+              "none"
+            ]
+          },
+          "env": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Environment(s) for this run, comma-separated"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LabelAttachment"
+            }
+          },
+          "public_report_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Public shareable URL of the run report. Present only when the run is published."
+          },
+          "public_report_passcode": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Numeric passcode protecting the public report. Present only when the run is published."
+          },
+          "public_report_expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Expiration date of the public report link. Present only when the run is published."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "URL to this run in Testomat.io (returned on create/update)"
+          }
+        }
+      },
+      "Testrun": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "testrun"
+            ]
+          },
+          "test_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "suite_title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Tag-stripped title of the test's parent suite"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "One of: passed, failed, skipped, pending"
+          },
+          "substatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "run_time": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Test execution duration in milliseconds"
+          },
+          "automated": {
+            "type": "boolean"
+          },
+          "assigned_to": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email"
+          },
+          "run_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Public UID of the parent run"
+          },
+          "test_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Public UID of the associated test"
+          },
+          "test_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Version index of the test at the time this testrun was executed. Returned only on show for non-pending testruns."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Description of the test at the version captured for this testrun. Returned only on show for non-pending testruns."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "URL to this testrun in Testomat.io (returned on create/update)"
+          }
+        }
+      },
+      "Rungroup": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Public UID"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "rungroup"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "clean_title": {
+            "type": "string"
+          },
+          "emoji": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "kind": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pin": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "runs_count": {
+            "type": "integer"
+          },
+          "finished_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "tests_count": {
+            "type": "integer"
+          },
+          "archived_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Public UID of the parent run group"
+          },
+          "children": {
+            "type": "array",
+            "description": "Nested child run groups (present in tree responses when children exist)",
+            "items": {
+              "$ref": "#/components/schemas/Rungroup"
+            }
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "URL to this run group in Testomat.io (returned on create/update)"
+          }
+        }
+      },
+      "Step": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "step"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_snippet": {
+            "type": "boolean"
+          },
+          "kind": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "usage_count": {
+            "type": "integer"
+          },
+          "keywords": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LabelAttachment"
+            }
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "URL to this step in Testomat.io (returned on create/update)"
+          }
+        }
+      },
+      "Label": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Label slug"
+          },
+          "title": {
+            "type": "string"
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "position": {
+            "type": "integer"
+          },
+          "visibility": {
+            "type": "string"
+          },
+          "list": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TagSummary": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          }
+        }
+      },
+      "Issue": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Database ID"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "issue",
+              "jira_issue"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "description": "Integration source (e.g. github, jira, linear, link)"
+          },
+          "resource_type": {
+            "type": "string",
+            "description": "Type of linked resource (test, suite, run, testrun, plan)"
+          },
+          "resource_id": {
+            "type": "string",
+            "description": "Public UID of the linked resource"
+          },
+          "jira_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Jira issue key (only for type=jira_issue)"
+          },
+          "synced": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "Jira sync status (only for type=jira_issue)"
+          }
+        }
+      },
+      "LabelAttachment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Label slug"
+          },
+          "title": {
+            "type": "string"
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "position": {
+            "type": "integer"
+          },
+          "visibility": {
+            "type": "string"
+          },
+          "list": {
+            "type": "boolean"
+          },
+          "value": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Custom field value (if label has a field type)"
+          },
+          "short": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Short display format for the field"
+          }
+        }
+      },
+      "LinkAction": {
+        "type": "object",
+        "required": [
+          "action",
+          "type"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "add",
+              "remove"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "label",
+              "custom_field",
+              "tag",
+              "milestone",
+              "issue",
+              "jira",
+              "requirement",
+              "public_report"
+            ]
+          },
+          "value": {
+            "oneOf": [
+              {
+                "type": "string",
+                "description": "Meaning depends on type:\n- label/custom_field: label slug, or \"Slug:Value\" colon notation\n- tag: tag name\n- milestone: milestone slug\n- issue: issue URL\n- jira: Jira issue key (e.g. TST-123)\n- requirement: requirement ID (8-char). Only supported for suites.\n"
+              },
+              {
+                "type": "object",
+                "description": "Used for `public_report` type only. Only supported for runs.\nSharing is silently skipped if `expires_at` is invalid, less than 1 day from now, or the run already has an active public report.\n",
+                "properties": {
+                  "passcode": {
+                    "type": "boolean",
+                    "description": "Set to true to protect the public report with a randomly generated passcode."
+                  },
+                  "expires_at": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Expiration date for the public report link (e.g. \"2026-12-31\"). Must be at least 1 day from now. Defaults to 1 week from today if not provided."
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "Milestone": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Milestone slug"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "milestone"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "display_title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "created",
+              "active",
+              "closed"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "goal": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "start_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "release_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "expired": {
+            "type": "boolean"
+          },
+          "project_scoped": {
+            "type": "boolean"
+          }
+        }
+      },
+      "IssueInput": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Issue URL (for generic issues). Provide either url or jira_id."
+          },
+          "jira_id": {
+            "type": "string",
+            "description": "Jira issue key (e.g. TST-123). Provide either url or jira_id."
+          }
+        }
+      },
+      "TestInput": {
+        "type": "object",
+        "required": [
+          "title",
+          "suite_id"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "emoji": {
+            "type": "string"
+          },
+          "suite_id": {
+            "type": "string",
+            "description": "Public UID of the parent suite"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "low",
+              "normal",
+              "important",
+              "high",
+              "critical"
+            ]
+          },
+          "assigned_to": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address of a non-readonly project member to assign."
+          },
+          "code": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "link": {
+            "type": "array",
+            "description": "Add/remove labels, tags, issues, or jira links",
+            "items": {
+              "$ref": "#/components/schemas/LinkAction"
+            }
+          }
+        }
+      },
+      "SuiteInput": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "emoji": {
+            "type": "string"
+          },
+          "parent_id": {
+            "type": "string",
+            "description": "Public UID of the parent suite"
+          },
+          "file_type": {
+            "type": "string",
+            "description": "Auto-detected from children: 'folder' if children provided, 'file' otherwise. Can be overridden explicitly."
+          },
+          "assigned_to": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address of a non-readonly project member to assign."
+          },
+          "file": {
+            "type": "string",
+            "description": "File path to associate with the suite. Only applicable when file_type is 'file'."
+          },
+          "children": {
+            "type": "array",
+            "description": "Nested child suites to create recursively. When provided, file_type is auto-set to 'folder'.",
+            "items": {
+              "$ref": "#/components/schemas/SuiteChildInput"
+            }
+          },
+          "link": {
+            "type": "array",
+            "description": "Add/remove labels, tags, issues, or jira links",
+            "items": {
+              "$ref": "#/components/schemas/LinkAction"
+            }
+          }
+        }
+      },
+      "SuiteChildInput": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "emoji": {
+            "type": "string"
+          },
+          "children": {
+            "type": "array",
+            "description": "Nested child suites (recursive)",
+            "items": {
+              "$ref": "#/components/schemas/SuiteChildInput"
+            }
+          }
+        }
+      },
+      "PlanInput": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "as_manual": {
+            "type": "boolean"
+          },
+          "test_ids": {
+            "type": "array",
+            "description": "List of test IDs (8-char) to include in the plan. If omitted, all tests matching the plan kind are included.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "suite_ids": {
+            "type": "array",
+            "description": "List of suite IDs (8-char) to include in the plan. If omitted, all suites are considered.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tql": {
+            "type": "string",
+            "description": "TQL query expression to filter tests for the plan (e.g. `priority == 'high'`).",
+            "example": "priority == 'high'"
+          },
+          "link": {
+            "type": "array",
+            "description": "Add/remove labels or issues/jira links",
+            "items": {
+              "$ref": "#/components/schemas/LinkAction"
+            }
+          }
+        }
+      },
+      "RunCreateInput": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "plan_ids": {
+            "type": "array",
+            "description": "List of plan public UIDs to include in the run",
+            "items": {
+              "type": "string"
+            }
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "automated",
+              "mixed"
+            ]
+          },
+          "rungroup_id": {
+            "type": "string",
+            "description": "Public UID of the run group"
+          },
+          "env": {
+            "type": "string",
+            "description": "Environment(s) for this run, comma-separated"
+          },
+          "assigned_to": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address of a non-readonly project member to assign."
+          },
+          "assign_strategy": {
+            "type": "string",
+            "enum": [
+              "test",
+              "random",
+              "none"
+            ],
+            "description": "Strategy for assigning testruns to users:\n- `test`: assign each testrun to the user assigned to the corresponding test\n- `random`: distribute testruns evenly across all run assistants\n- `none`: no automatic assignment (default)\n"
+          },
+          "test_ids": {
+            "type": "array",
+            "description": "List of test public UIDs to include in the run. Pass [\"*\"] to include all tests in the project.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "suite_ids": {
+            "type": "array",
+            "description": "List of suite public UIDs whose tests will be included in the run",
+            "items": {
+              "type": "string"
+            }
+          },
+          "envs": {
+            "type": "array",
+            "description": "List of environments for multi-environment run creation. Only applicable when `kind` is `manual` (or not specified). When provided, a separate Run is created for each environment and grouped into a Rungroup. Ignored for `automated` and `mixed` kinds.\n",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "staging",
+              "production"
+            ]
+          },
+          "link": {
+            "type": "array",
+            "description": "Add/remove labels or issues/jira links",
+            "items": {
+              "$ref": "#/components/schemas/LinkAction"
+            }
+          }
+        }
+      },
+      "RunUpdateInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "automated",
+              "mixed"
+            ]
+          },
+          "rungroup_id": {
+            "type": "string",
+            "description": "Public UID of the run group"
+          },
+          "env": {
+            "type": "string",
+            "description": "Environment(s) for this run, comma-separated"
+          },
+          "status_event": {
+            "type": "string",
+            "enum": [
+              "finish",
+              "finish_manual",
+              "launch",
+              "rerun",
+              "scheduled",
+              "terminate"
+            ],
+            "description": "Trigger a run status transition:\n- `finish`: Finish an automated run; final status is calculated from test results\n- `finish_manual`: Finish a manual/mixed run; final status is calculated from test results\n- `launch`: Start the run\n- `rerun`: Restart the run\n- `scheduled`: Move the run back to scheduled state\n- `terminate`: Stop the run and mark it as terminated\n"
+          },
+          "assigned_to": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address of a non-readonly project member to assign."
+          },
+          "assign_strategy": {
+            "type": "string",
+            "enum": [
+              "test",
+              "random",
+              "none"
+            ],
+            "description": "Strategy for assigning testruns to users:\n- `test`: assign each testrun to the user assigned to the corresponding test\n- `random`: distribute testruns evenly across all run assistants\n- `none`: no automatic assignment (default)\n"
+          },
+          "test_ids": {
+            "type": "array",
+            "description": "List of test public UIDs to append to the run configuration",
+            "items": {
+              "type": "string"
+            }
+          },
+          "suite_ids": {
+            "type": "array",
+            "description": "List of suite public UIDs whose tests will be appended to the run configuration",
+            "items": {
+              "type": "string"
+            }
+          },
+          "link": {
+            "type": "array",
+            "description": "Add/remove labels or issues/jira links",
+            "items": {
+              "$ref": "#/components/schemas/LinkAction"
+            }
+          }
+        }
+      },
+      "TestrunInput": {
+        "type": "object",
+        "required": [
+          "run_id"
+        ],
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "description": "Public UID of the run"
+          },
+          "test_id": {
+            "type": "string",
+            "description": "Public UID of the test"
+          },
+          "status": {
+            "type": "string",
+            "description": "One of: passed, failed, skipped, pending"
+          },
+          "message": {
+            "type": "string"
+          },
+          "run_time": {
+            "type": "number"
+          },
+          "assigned_to": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address of a non-readonly project member to assign."
+          },
+          "test_title": {
+            "type": "string"
+          },
+          "automated": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RungroupInput": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "emoji": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "pin": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string"
+          },
+          "parent_id": {
+            "type": "string",
+            "description": "Public UID of the parent run group"
+          },
+          "children": {
+            "type": "array",
+            "description": "Nested child run groups to create recursively",
+            "items": {
+              "$ref": "#/components/schemas/RungroupChildInput"
+            }
+          }
+        }
+      },
+      "RungroupChildInput": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "emoji": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "pin": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string"
+          },
+          "children": {
+            "type": "array",
+            "description": "Nested child run groups (recursive)",
+            "items": {
+              "$ref": "#/components/schemas/RungroupChildInput"
+            }
+          }
+        }
+      },
+      "StepInput": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "link": {
+            "type": "array",
+            "description": "Add/remove labels",
+            "items": {
+              "$ref": "#/components/schemas/LinkAction"
+            }
+          }
+        }
+      },
+      "SnippetInput": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "link": {
+            "type": "array",
+            "description": "Add/remove labels",
+            "items": {
+              "$ref": "#/components/schemas/LinkAction"
+            }
+          }
+        }
+      },
+      "LabelInput": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "visibility": {
+            "type": "array",
+            "description": "Where the label appears: 'filter' — in filter panel, 'list' — on entity list page",
+            "items": {
+              "type": "string",
+              "enum": [
+                "filter",
+                "list"
+              ]
+            }
+          },
+          "scope": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "tests",
+                "suites",
+                "runs",
+                "plans",
+                "steps",
+                "templates"
+              ]
+            }
+          },
+          "field": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "responses": {
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing or invalid token",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "UnprocessableEntity": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/v2/{project_id}/info": {
+      "get": {
+        "summary": "Get project configuration",
+        "operationId": "getProjectInfo",
+        "tags": [
+          "Projects"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project configuration data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProjectInfo"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/tests": {
+      "get": {
+        "summary": "List tests",
+        "operationId": "listTests",
+        "tags": [
+          "Tests"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/perPage"
+          },
+          {
+            "name": "suites[]",
+            "in": "query",
+            "description": "Filter by suite public UIDs. Returns tests from matching suites and their sub-suites. Pass multiple values as repeated params: `suites[]=id1&suites[]=id2`.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "tags[]",
+            "in": "query",
+            "description": "Filter by tags (OR logic — tests that have any of the specified tags). Use `@` prefix or plain name. Pass multiple values as repeated params: `tags[]=smoke&tags[]=regression`.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "user",
+            "in": "query",
+            "description": "Filter by assigned user ID.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "labels[]",
+            "in": "query",
+            "description": "Filter by labels (OR logic — tests that have any of the specified labels). Pass multiple values as repeated params: `labels[]=id1&labels[]=id2`.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "priority",
+            "in": "query",
+            "description": "Filter by priority.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "low",
+                "normal",
+                "important",
+                "high",
+                "critical"
+              ]
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "description": "Filter by automation state.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "manual",
+                "automated"
+              ]
+            }
+          },
+          {
+            "name": "sync_status",
+            "in": "query",
+            "description": "Filter by sync status. `sync` returns synced tests; `unsync` returns unsynced tests.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "sync",
+                "unsync"
+              ]
+            }
+          },
+          {
+            "name": "milestones[]",
+            "in": "query",
+            "description": "Filter by milestones. Pass multiple values as repeated params: `milestones[]=slug1&milestones[]=slug2`.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "search_text",
+            "in": "query",
+            "description": "Plain text search across test titles.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tql",
+            "in": "query",
+            "description": "TQL (Testomat Query Language) expression for advanced filtering (e.g. `@smoke and not @skip`). Do not prefix with `=`.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "wildcard_tag",
+            "in": "query",
+            "description": "Filter by tag prefix using wildcard matching (e.g. `feature` matches `feature:login`, `feature:signup`).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of tests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Test"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a test",
+        "operationId": "createTest",
+        "tags": [
+          "Tests"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Test created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Test"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/tests/{id}": {
+      "get": {
+        "summary": "Get a test",
+        "operationId": "getTest",
+        "tags": [
+          "Tests"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/resourceId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Test details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Test"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a test",
+        "operationId": "updateTest",
+        "tags": [
+          "Tests"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/resourceId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Test updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Test"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a test",
+        "operationId": "deleteTest",
+        "tags": [
+          "Tests"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/resourceId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Test deleted"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/suites": {
+      "get": {
+        "summary": "List suites as tree",
+        "operationId": "listSuites",
+        "tags": [
+          "Suites"
+        ],
+        "description": "Returns suites as a nested tree structure. Root suites are paginated, with all their children nested recursively.\nWhen filter parameters are provided, returns only matching suites with their ancestor paths reconstructed as a tree (no pagination).\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/perPage"
+          },
+          {
+            "name": "file_type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "file",
+                "folder"
+              ]
+            },
+            "description": "Filter suites by file type"
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter suites by tag"
+          },
+          {
+            "name": "labels",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter suites by label (supports label:value format)"
+          },
+          {
+            "name": "search_text",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search suites by title"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tree of suites with nested children. Includes pagination meta when no filters are applied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Suite"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a suite (with optional children tree)",
+        "operationId": "createSuite",
+        "tags": [
+          "Suites"
+        ],
+        "description": "Creates a suite. When `children` array is provided, recursively creates nested child suites.\nThe `file_type` is auto-detected: 'folder' for suites with children, 'file' for leaf suites.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuiteInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Suite created (with nested children if provided)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Suite"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/suites/{id}": {
+      "get": {
+        "summary": "Get a suite",
+        "operationId": "getSuite",
+        "tags": [
+          "Suites"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/resourceId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Suite details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Suite"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a suite",
+        "operationId": "updateSuite",
+        "tags": [
+          "Suites"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/resourceId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuiteInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Suite updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Suite"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a suite",
+        "operationId": "deleteSuite",
+        "tags": [
+          "Suites"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/resourceId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Suite deleted"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/suites/markdown_import": {
+      "post": {
+        "summary": "Import suites and tests from markdown",
+        "operationId": "markdownImportSuites",
+        "tags": [
+          "Suites"
+        ],
+        "description": "Accepts markdown content (as a string or uploaded `.md` files) and imports suites\nand tests from it.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "markdown": {
+                    "type": "string",
+                    "description": "Markdown content to import."
+                  },
+                  "folder_id": {
+                    "type": "string",
+                    "description": "Public UID of an existing folder suite. New suites will be created under this folder."
+                  },
+                  "folder": {
+                    "type": "string",
+                    "description": "Folder path (e.g. `fol1/fol2`). Missing folders are created automatically.\nWhen combined with `folder_id`, the path is resolved relative to that folder.\n"
+                  }
+                }
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    },
+                    "description": "One or more `.md` files to import."
+                  },
+                  "folder_id": {
+                    "type": "string",
+                    "description": "Public UID of an existing folder suite."
+                  },
+                  "folder": {
+                    "type": "string",
+                    "description": "Folder path (e.g. `fol1/fol2`)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Import accepted and queued for processing."
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/plans": {
+      "get": {
+        "summary": "List plans",
+        "operationId": "listPlans",
+        "tags": [
+          "Plans"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/perPage"
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "description": "Filter by plan kind.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "manual",
+                "automated",
+                "mixed"
+              ]
+            }
+          },
+          {
+            "name": "hidden",
+            "in": "query",
+            "description": "Filter by visibility. `true` returns hidden plans; `false` returns visible plans.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "labels[]",
+            "in": "query",
+            "description": "Filter by labels (OR logic). Pass multiple values as repeated params: `labels[]=id1&labels[]=id2`.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "search_text",
+            "in": "query",
+            "description": "Plain text search across plan titles.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of plans",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Plan"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a plan",
+        "operationId": "createPlan",
+        "tags": [
+          "Plans"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Plan created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Plan"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/plans/{id}": {
+      "get": {
+        "summary": "Get a plan",
+        "operationId": "getPlan",
+        "tags": [
+          "Plans"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/resourceId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Plan details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Plan"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a plan",
+        "operationId": "updatePlan",
+        "tags": [
+          "Plans"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/resourceId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Plan updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Plan"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a plan",
+        "operationId": "deletePlan",
+        "tags": [
+          "Plans"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/resourceId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Plan deleted"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/runs": {
+      "get": {
+        "summary": "List runs",
+        "operationId": "listRuns",
+        "tags": [
+          "Runs"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/perPage"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Text search across run titles.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tql",
+            "in": "query",
+            "description": "TQL expression for advanced filtering.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupId",
+            "in": "query",
+            "description": "Filter by rungroup public UID. Includes runs from nested rungroups.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jira_ids",
+            "in": "query",
+            "description": "Filter by Jira issue IDs (comma-separated, e.g. `TES-1,TES-2`).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[status]",
+            "in": "query",
+            "description": "Filter by run status (comma-separated).",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "scheduled",
+                "running",
+                "passed",
+                "failed",
+                "terminated"
+              ]
+            }
+          },
+          {
+            "name": "filter[kind]",
+            "in": "query",
+            "description": "Filter by run kind (comma-separated).",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "manual",
+                "automated",
+                "mixed"
+              ]
+            }
+          },
+          {
+            "name": "filter[user]",
+            "in": "query",
+            "description": "Filter by assigned user IDs (comma-separated).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[created_by]",
+            "in": "query",
+            "description": "Filter by creator user IDs (comma-separated).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[env]",
+            "in": "query",
+            "description": "Filter by run environment.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[unfinished]",
+            "in": "query",
+            "description": "Filter unfinished runs only.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "filter[archived]",
+            "in": "query",
+            "description": "Filter by archived status.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "filter[in_group]",
+            "in": "query",
+            "description": "`true` returns runs that belong to a rungroup; `false` returns runs without a rungroup.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "filter[milestone]",
+            "in": "query",
+            "description": "Filter by milestone slug.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[labels][]",
+            "in": "query",
+            "description": "Filter by labels (OR logic). Pass as repeated params: `filter[labels][]=id1&filter[labels][]=id2`.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of runs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Run"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a run",
+        "operationId": "createRun",
+        "tags": [
+          "Runs"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunCreateInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Run created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Run"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/runs/{id}": {
+      "get": {
+        "summary": "Get a run",
+        "operationId": "getRun",
+        "tags": [
+          "Runs"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/resourceId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Run details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Run"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a run",
+        "operationId": "updateRun",
+        "tags": [
+          "Runs"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/resourceId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunUpdateInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Run updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Run"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a run",
+        "operationId": "deleteRun",
+        "tags": [
+          "Runs"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/resourceId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Run deleted"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/testruns": {
+      "get": {
+        "summary": "List testruns",
+        "operationId": "listTestruns",
+        "tags": [
+          "Testruns"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/perPage"
+          },
+          {
+            "name": "run_id",
+            "in": "query",
+            "description": "Filter by run public ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "test_ids",
+            "in": "query",
+            "description": "Filter by test IDs (comma-separated, e.g. `23Eer32Re,654Ijre3`).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[status]",
+            "in": "query",
+            "description": "Filter by testrun status.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "passed",
+                "failed",
+                "skipped",
+                "pending"
+              ]
+            }
+          },
+          {
+            "name": "filter[kind]",
+            "in": "query",
+            "description": "Filter by automation kind.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "manual",
+                "automated"
+              ]
+            }
+          },
+          {
+            "name": "filter[user]",
+            "in": "query",
+            "description": "Filter by assigned user ID.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "filter[priority]",
+            "in": "query",
+            "description": "Filter by test priority.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "low",
+                "normal",
+                "important",
+                "high",
+                "critical"
+              ]
+            }
+          },
+          {
+            "name": "filter[substatus]",
+            "in": "query",
+            "description": "Filter by custom substatus (pipe-separated for multiple values, e.g. `blocked|Known issue`).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[search]",
+            "in": "query",
+            "description": "Text search across test title.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[message]",
+            "in": "query",
+            "description": "Return only testruns that have a message.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "filter[link]",
+            "in": "query",
+            "description": "Return only testruns that have a linked issue.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "filter[finished_at_date_range]",
+            "in": "query",
+            "description": "Filter by date range (comma-separated ISO dates, e.g. `2024-01-01,2024-12-31`).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tags",
+            "in": "query",
+            "description": "Filter by test tags (comma-separated, e.g. `smoke,regression`).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "labels",
+            "in": "query",
+            "description": "Filter by run labels (comma-separated, without whitespace).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "envs",
+            "in": "query",
+            "description": "Filter by run environments (comma-separated, without whitespace).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "rungroups",
+            "in": "query",
+            "description": "Filter by rungroup public IDs (comma-separated, without whitespace). Use `root` for runs without a group.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "defects",
+            "in": "query",
+            "description": "Filter by defect presence.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "has_defects",
+                "without_defects"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of testruns",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Testrun"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a testrun",
+        "operationId": "createTestrun",
+        "tags": [
+          "Testruns"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestrunInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Testrun created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Testrun"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/testruns/{id}": {
+      "get": {
+        "summary": "Get a testrun",
+        "operationId": "getTestrun",
+        "tags": [
+          "Testruns"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Testrun details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Testrun"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a testrun",
+        "operationId": "updateTestrun",
+        "tags": [
+          "Testruns"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestrunInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Testrun updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Testrun"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a testrun",
+        "operationId": "deleteTestrun",
+        "tags": [
+          "Testruns"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Testrun deleted"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/rungroups": {
+      "get": {
+        "summary": "List run groups as tree",
+        "operationId": "listRungroups",
+        "tags": [
+          "Rungroups"
+        ],
+        "description": "Returns run groups as a nested tree structure. Root groups are paginated, with all their children nested recursively.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/perPage"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tree of run groups with nested children",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Rungroup"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a run group (with optional children tree)",
+        "operationId": "createRungroup",
+        "tags": [
+          "Rungroups"
+        ],
+        "description": "Creates a run group. When `children` array is provided, recursively creates nested child groups.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RungroupInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Run group created (with nested children if provided)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Rungroup"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/rungroups/{id}": {
+      "get": {
+        "summary": "Get a run group",
+        "operationId": "getRungroup",
+        "tags": [
+          "Rungroups"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/resourceId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Run group details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Rungroup"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a run group",
+        "operationId": "updateRungroup",
+        "tags": [
+          "Rungroups"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/resourceId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RungroupInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Run group updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Rungroup"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a run group",
+        "operationId": "deleteRungroup",
+        "tags": [
+          "Rungroups"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/resourceId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Run group deleted"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/steps": {
+      "get": {
+        "summary": "List steps",
+        "operationId": "listSteps",
+        "tags": [
+          "Steps"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/perPage"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of steps",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Step"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a step",
+        "operationId": "createStep",
+        "tags": [
+          "Steps"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StepInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Step created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Step"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/steps/{id}": {
+      "get": {
+        "summary": "Get a step",
+        "operationId": "getStep",
+        "tags": [
+          "Steps"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Step details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Step"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a step",
+        "operationId": "updateStep",
+        "tags": [
+          "Steps"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StepInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Step updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Step"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a step",
+        "operationId": "deleteStep",
+        "tags": [
+          "Steps"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Step deleted"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/snippets": {
+      "get": {
+        "summary": "List snippets",
+        "operationId": "listSnippets",
+        "tags": [
+          "Snippets"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/perPage"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of snippets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Step"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a snippet",
+        "operationId": "createSnippet",
+        "tags": [
+          "Snippets"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SnippetInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Snippet created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Step"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/snippets/{id}": {
+      "get": {
+        "summary": "Get a snippet",
+        "operationId": "getSnippet",
+        "tags": [
+          "Snippets"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Snippet details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Step"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a snippet",
+        "operationId": "updateSnippet",
+        "tags": [
+          "Snippets"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SnippetInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Snippet updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Step"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a snippet",
+        "operationId": "deleteSnippet",
+        "tags": [
+          "Snippets"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Snippet deleted"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/labels": {
+      "get": {
+        "summary": "List labels",
+        "operationId": "listLabels",
+        "tags": [
+          "Labels"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/perPage"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of labels",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Label"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a label",
+        "operationId": "createLabel",
+        "tags": [
+          "Labels"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabelInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Label created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Label"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/labels/{id}": {
+      "get": {
+        "summary": "Get a label",
+        "operationId": "getLabel",
+        "tags": [
+          "Labels"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Label slug",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Label details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Label"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a label",
+        "operationId": "updateLabel",
+        "tags": [
+          "Labels"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Label slug",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabelInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Label updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Label"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a label",
+        "operationId": "deleteLabel",
+        "tags": [
+          "Labels"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Label slug",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Label deleted"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/tags": {
+      "get": {
+        "summary": "List tags with counts",
+        "operationId": "listTags",
+        "tags": [
+          "Tags"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of tags",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TagSummary"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/tags/{id}": {
+      "get": {
+        "summary": "Get tests by tag",
+        "operationId": "getTag",
+        "tags": [
+          "Tags"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Tag title (may contain dots, colons, etc.)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tests matching the tag",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Test"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/milestones": {
+      "get": {
+        "summary": "List milestones",
+        "operationId": "listMilestones",
+        "tags": [
+          "Milestones"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/perPage"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filter by milestone type (title), e.g. Sprint, Release",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by status: created, active, closed",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "created",
+                "active",
+                "closed"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of milestones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Milestone"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/milestones/{id}": {
+      "get": {
+        "summary": "Get a milestone",
+        "operationId": "getMilestone",
+        "tags": [
+          "Milestones"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/resourceId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Milestone details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Milestone"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/issues": {
+      "get": {
+        "summary": "List linked issues",
+        "operationId": "listIssues",
+        "tags": [
+          "Issues"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/perPage"
+          },
+          {
+            "name": "test_id",
+            "in": "query",
+            "description": "Filter by test (public UID)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "suite_id",
+            "in": "query",
+            "description": "Filter by suite (public UID)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "run_id",
+            "in": "query",
+            "description": "Filter by run (public UID)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "testrun_id",
+            "in": "query",
+            "description": "Filter by testrun (integer ID)",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "plan_id",
+            "in": "query",
+            "description": "Filter by plan (public UID)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "description": "Filter by source (e.g. jira, github, linear, link)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of issues",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Issue"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "summary": "Link an issue to a resource",
+        "operationId": "createIssue",
+        "tags": [
+          "Issues"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "test_id",
+            "in": "query",
+            "description": "Public UID of the test to link",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "suite_id",
+            "in": "query",
+            "description": "Public UID of the suite to link",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "run_id",
+            "in": "query",
+            "description": "Public UID of the run to link",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "testrun_id",
+            "in": "query",
+            "description": "ID of the testrun to link",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "plan_id",
+            "in": "query",
+            "description": "Public UID of the plan to link",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Issue linked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Issue"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/issues/{id}": {
+      "delete": {
+        "summary": "Unlink an issue",
+        "operationId": "deleteIssue",
+        "tags": [
+          "Issues"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Database ID of the issue",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "description": "Type of issue: 'issue' or 'jira_issue'",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "issue",
+                "jira_issue"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/sessionHash"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Issue unlinked"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/requirements": {
+      "get": {
+        "summary": "List requirements",
+        "operationId": "listRequirements",
+        "tags": [
+          "Requirements"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/perPage"
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "description": "Filter by source type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "jira",
+                "confluence",
+                "file",
+                "text"
+              ]
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "Filter by attachment scope",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "global",
+                "attached",
+                "detached",
+                "without_suites"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of requirements",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Requirement"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a requirement",
+        "operationId": "createRequirement",
+        "tags": [
+          "Requirements"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequirementCreateInput"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/RequirementCreateInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Requirement created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Requirement"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/requirements/{id}": {
+      "get": {
+        "summary": "Get a requirement",
+        "operationId": "getRequirement",
+        "tags": [
+          "Requirements"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Requirement ID (8-char)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Requirement details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Requirement"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update a requirement",
+        "operationId": "updateRequirement",
+        "tags": [
+          "Requirements"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Requirement ID (8-char)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequirementUpdateInput"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/RequirementUpdateInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Requirement updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Requirement"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a requirement",
+        "operationId": "deleteRequirement",
+        "tags": [
+          "Requirements"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Requirement ID (8-char)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Requirement deleted"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/sessions": {
+      "post": {
+        "summary": "Start a session",
+        "operationId": "createSession",
+        "tags": [
+          "Sessions"
+        ],
+        "description": "Creates a new session that groups subsequent API changes under a single\nhistory entry. Pass the returned hash in the X-Session-Hash header on\nsubsequent requests. Sessions expire after 30 minutes.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string",
+                    "description": "Optional description shown in project history"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Session started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "hash": {
+                          "type": "string",
+                          "description": "Session hash to pass in X-Session-Hash header"
+                        },
+                        "version_id": {
+                          "type": "string",
+                          "description": "Parent version ID for reviewing and reverting session changes"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "expires_in": {
+                          "type": "integer",
+                          "description": "Session TTL in seconds"
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/sessions/{id}": {
+      "delete": {
+        "summary": "Stop a session",
+        "operationId": "deleteSession",
+        "tags": [
+          "Sessions"
+        ],
+        "description": "Stops an active session and removes it from the server.\nSubsequent requests with this session hash will be rejected.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Session hash",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Session stopped"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/analytics/tests/{kind}": {
+      "get": {
+        "summary": "List tests matching an analytics report",
+        "operationId": "analyticsTests",
+        "tags": [
+          "Analytics"
+        ],
+        "description": "Returns a paginated list of tests for the given analytics `kind`:\n`flaky`, `slow`, `failing`, `evergreen`, `never-executed`, `skipped`,\n`failures`, `defects`, or `issues`. Row shape varies per kind; see\nthe `AnalyticsTestsResponse` schema.\n\nFilter with `q` (TQL), `days` or `from`/`to`, and `envs`. Kind-specific\nparams: `min`/`max` (flaky, 0.0–1.0), `threshold_ms` (slow),\n`maturity_days` (never-executed), `run` (flaky/slow — scope to one run UID).\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/analyticsTestKind"
+          },
+          {
+            "$ref": "#/components/parameters/analyticsQ"
+          },
+          {
+            "$ref": "#/components/parameters/analyticsDays"
+          },
+          {
+            "$ref": "#/components/parameters/analyticsFrom"
+          },
+          {
+            "$ref": "#/components/parameters/analyticsTo"
+          },
+          {
+            "$ref": "#/components/parameters/analyticsEnvs"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/perPage"
+          },
+          {
+            "name": "min",
+            "in": "query",
+            "required": false,
+            "description": "Flaky rate lower bound (0.0–1.0). Applies only to `flaky`.",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          {
+            "name": "max",
+            "in": "query",
+            "required": false,
+            "description": "Flaky rate upper bound (0.0–1.0). Applies only to `flaky`.",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          {
+            "name": "threshold_ms",
+            "in": "query",
+            "required": false,
+            "description": "Duration threshold in milliseconds. Applies only to `slow`.",
+            "schema": {
+              "type": "integer",
+              "minimum": 11
+            }
+          },
+          {
+            "name": "maturity_days",
+            "in": "query",
+            "required": false,
+            "description": "Minimum test age in days. Applies only to `never-executed`.",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "run",
+            "in": "query",
+            "required": false,
+            "description": "Scope results to one run UID. Applies only to `flaky` and `slow`.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching tests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsTestsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      }
+    },
+    "/api/v2/{project_id}/analytics/stats/{kind}": {
+      "get": {
+        "summary": "Fetch an aggregated analytics report",
+        "operationId": "analyticsStats",
+        "tags": [
+          "Analytics"
+        ],
+        "description": "Returns aggregated data for the given stats `kind`:\n`project-summary`, `runs-summary`, `success-rate-by-date`,\n`automation-rate-by-date`, `testruns-by-date`, or `priority-by-date`.\n\nResponse shape is generic — `meta.primary_key`, `meta.primary_label`,\nand `meta.data_keys` describe the rows so clients can render charts\nwithout hardcoded per-kind schemas.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/projectId"
+          },
+          {
+            "$ref": "#/components/parameters/analyticsStatsKind"
+          },
+          {
+            "$ref": "#/components/parameters/analyticsQ"
+          },
+          {
+            "$ref": "#/components/parameters/analyticsDays"
+          },
+          {
+            "$ref": "#/components/parameters/analyticsFrom"
+          },
+          {
+            "$ref": "#/components/parameters/analyticsTo"
+          },
+          {
+            "$ref": "#/components/parameters/analyticsEnvs"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Aggregated report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsStatsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      }
+    }
+  }
+}

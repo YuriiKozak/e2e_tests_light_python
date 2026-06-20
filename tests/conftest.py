@@ -3,7 +3,7 @@ import pytest
 pytest_plugins = [
     "tests.fixtures.api",
     "tests.fixtures.app",
-    "tests.fixtures.config",
+    "tests.fixtures.configs",
     "tests.fixtures.playwright",
     "tests.fixtures.selenium",
 ]

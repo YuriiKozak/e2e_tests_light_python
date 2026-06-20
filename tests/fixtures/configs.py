@@ -12,6 +12,7 @@ class Configs:
     url: str
     email: str
     password: str
+    token: str
 
 
 @pytest.fixture(scope="session")
@@ -25,6 +26,7 @@ def configs() -> Configs:
             url=os.environ["URL"],
             email=os.environ["EMAIL"],
             password=os.environ["PASSWORD"],
+            token=os.environ["TOKEN"],
         )
     except KeyError as e:
         raise ValueError(

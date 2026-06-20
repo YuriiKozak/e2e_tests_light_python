@@ -6,7 +6,7 @@ from playwright.sync_api import BrowserContext, Page
 from playwright.sync_api import Error as PlaywrightError
 
 from src.web.application import Application
-from tests.fixtures.config import Configs
+from tests.fixtures.configs import Configs
 
 # Path to the saved authentication state
 STORAGE_STATE_PATH = Path("test-result/.auth/storage_state.json")

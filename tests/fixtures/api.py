@@ -3,12 +3,67 @@ from pathlib import Path
 from typing import Any, Generator, cast
 
 import pytest
+import requests
 
 from src.api.client import ApiClient
+from src.api.controllers import ProjectController, SuiteController, TestController
+from src.api.models import Project
 from src.web.application import Application
-from tests.fixtures.config import Configs
+from tests.fixtures.configs import Configs
 
 STORAGE_STATE_PATH = Path("test-result/.auth/storage_state.json")
+
+
+@pytest.fixture(scope="session")
+def auth_token(configs: Configs) -> str:
+    """Single authentication token shared across all controllers."""
+    response = requests.post(
+        url=f"{configs.url}/api/login",
+        json={"api_token": configs.token},
+        timeout=30,
+    )
+    response.raise_for_status()
+    return response.json()["jwt"]
+
+
+@pytest.fixture(scope="session")
+def project_controller(configs: Configs, auth_token: str) -> ProjectController:
+    controller = ProjectController(
+        base_url=configs.url,
+        api_token=configs.token,
+        jwt_token=auth_token,
+    )
+    yield controller
+    controller.close()
+
+
+@pytest.fixture(scope="session")
+def suite_controller(configs: Configs, auth_token: str) -> SuiteController:
+    controller = SuiteController(
+        base_url=configs.url,
+        api_token=configs.token,
+        jwt_token=auth_token,
+    )
+    yield controller
+    controller.close()
+
+
+@pytest.fixture(scope="session")
+def test_controller(configs: Configs, auth_token: str) -> TestController:
+    controller = TestController(
+        base_url=configs.url,
+        api_token=configs.token,
+        jwt_token=auth_token,
+    )
+    yield controller
+    controller.close()
+
+
+@pytest.fixture(scope="function")
+def project(project_controller: ProjectController) -> Project:
+    """Get the first available project as a precondition."""
+    projects = project_controller.get_all()
+    return projects[0]
 
 
 @pytest.fixture(scope="function")

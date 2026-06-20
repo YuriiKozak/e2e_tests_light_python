@@ -2,8 +2,8 @@ import pytest
 
 from src.web.application import Application
 
-FREE_PROJECTS = "Free Projects3"
-TARGET_PROJECT = "Popopo3"
+FREE_PROJECTS = "Free Projects"
+TARGET_PROJECT = "Popopo"
 
 
 @pytest.mark.regression
