@@ -1,5 +1,5 @@
 from src.api.controllers.base_controller import BaseController
-from src.api.models import Project, ProjectResponse
+from src.api.models.project import Project, ProjectResponse
 
 
 class ProjectController(BaseController):

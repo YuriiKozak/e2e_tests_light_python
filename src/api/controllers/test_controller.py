@@ -1,5 +1,5 @@
 from src.api.controllers.base_controller import BaseController
-from src.api.models import Test
+from src.api.models.models import Test
 
 
 class TestController(BaseController):

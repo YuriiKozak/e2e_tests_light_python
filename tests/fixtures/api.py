@@ -6,8 +6,10 @@ import pytest
 import requests
 
 from src.api.client import ApiClient
-from src.api.controllers import ProjectController, SuiteController, TestController
-from src.api.models import Project
+from src.api.controllers.project_controller import ProjectController
+from src.api.controllers.suite_controller import SuiteController
+from src.api.controllers.test_controller import TestController
+from src.api.models.project import Project
 from src.web.application import Application
 from tests.fixtures.configs import Configs
 
