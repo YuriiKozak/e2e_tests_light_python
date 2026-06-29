@@ -10,7 +10,7 @@ on:
       test_suite:
         description: 'Test suite to run'
         required: true
-        default: 'smoke'
+        default: 'api'
         type: choice
         options:
           - api
