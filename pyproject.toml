@@ -9,7 +9,7 @@ dependencies = [
     "charset-normalizer==3.4.7",
     "colorama==0.4.6",
     "faker>=40.23.0",
-    "greenlet==3.5.2",
+    "greenlet==3.5.3",
     "idna==3.18",
     "iniconfig==2.3.0",
     "packaging==26.2",
@@ -39,11 +39,9 @@ python_functions = ["test_*"]
 norecursedirs = [".git", ".venv", ".claude", "__pycache__", "build", "dist", "*.egg-info"]
 addopts = "-v -ra --strict-markers --tb=short --headed --tracing=retain-on-failure --screenshot=on --output=test-result/traces/ --html=test-result/report.html --self-contained-html"
 markers = [
-    "smoke: Quick smoke tests for basic functionality",
-    "regression: Full regression test suite",
-    "web: Web UI tests using Playwright",
-    "slow: Tests that take longer to execute",
-    "api: API tests for backend validation",
+    "smoke: Smoke Tests",
+    "regression: Regression Tests",
+    "api: API Tests",
 ]
 console_output_style = "progress"
 log_cli = true
@@ -53,8 +51,8 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
 [dependency-groups]
 dev = [
-    "ruff>=0.15.18",
-    "datamodel-code-generator>=0.53.0",
+    "ruff>=0.15.20",
+    "datamodel-code-generator>=0.66.0",
 ]
 
 [tool.datamodel-codegen]

@@ -7,8 +7,8 @@ from src.api.models import Project
 fake = Faker()
 
 
-@pytest.mark.smoke
 @pytest.mark.api
+@pytest.mark.smoke
 def test_create_suite(
     project: Project,
     suite_controller: SuiteController,

@@ -6,6 +6,7 @@ FREE_PROJECTS = "Free Projects"
 TARGET_PROJECT = "Popopo"
 
 
+@pytest.mark.api
 @pytest.mark.regression
 def test_project_search(api_login, app: Application):
     (
@@ -15,6 +16,7 @@ def test_project_search(api_login, app: Application):
     )
 
 
+@pytest.mark.api
 @pytest.mark.regression
 def test_open_free_project(api_login, app: Application):
     (

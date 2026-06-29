@@ -1,9 +1,11 @@
+import pytest
 from faker import Faker
 
 from src.web.application import Application
 from src.web.components.sidebar_tab_enum import SidebarTab
 
 
+@pytest.mark.regression
 def test_new_project_creation(login, app: Application):
     project_title = Faker().company()
 

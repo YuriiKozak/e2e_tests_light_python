@@ -1,0 +1,93 @@
+name: E2E Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 8 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: true
+        default: 'smoke'
+        type: choice
+        options:
+          - smoke
+          - regression
+          - api
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install Python 3.14
+        run: uv python install 3.14
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run Ruff linter
+        run: uv run ruff check .
+
+      - name: Run Ruff formatter check
+        run: uv run ruff format --check .
+
+  api-tests:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' &&
+        (inputs.test_suite == 'api' || inputs.test_suite == 'all'))
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install Python 3.14
+        run: uv python install 3.14
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Install Playwright Chromium
+        run: uv run playwright install --with-deps chromium
+
+      - name: Run api tests
+        env:
+          CI: true
+          URL: ${{ secrets.URL }}
+          EMAIL: ${{ secrets.EMAIL }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          TOKEN: ${{ secrets.TOKEN }}
+        run: uv run pytest -m api --ignore=tests/web/selenium
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-html-report
+          path: test-result/report.html
+          retention-days: 14
+
+      - name: Upload traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-traces
+          path: test-result/traces/
+          retention-days: 14
