@@ -5,31 +5,33 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
-    "certifi==2026.6.17",
-    "charset-normalizer==3.4.7",
-    "colorama==0.4.6",
+    "allure-pytest>=2.16.0",
+    "allure-python-commons>=2.16.0",
+    "certifi>=2026.6.17",
+    "charset-normalizer>=3.4.7",
+    "colorama>=0.4.6",
     "email-validator>=2.3.0",
     "faker>=40.23.0",
-    "greenlet==3.5.3",
-    "idna==3.18",
-    "iniconfig==2.3.0",
-    "packaging==26.2",
-    "playwright==1.60.0",
-    "pluggy==1.6.0",
+    "greenlet>=3.5.3",
+    "idna>=3.18",
+    "iniconfig>=2.3.0",
+    "packaging>=26.2",
+    "playwright>=1.61.0",
+    "pluggy>=1.6.0",
     "pydantic>=2.13.4",
-    "pyee==13.0.1",
-    "pygments==2.20.0",
-    "pytest==9.1.1",
-    "pytest-base-url==2.1.0",
+    "pyee>=13.0.1",
+    "pygments>=2.20.0",
+    "pytest>=9.1.1",
+    "pytest-base-url>=2.1.0",
     "pytest-html>=4.2.0",
-    "pytest-playwright==0.8.0",
+    "pytest-playwright>=0.8.0",
     "python-dotenv>=1.2.2",
-    "python-slugify==8.0.4",
-    "requests==2.34.2",
+    "python-slugify>=8.0.4",
+    "requests>=2.34.2",
     "selenium>=4.45.0",
-    "text-unidecode==1.3",
-    "typing-extensions==4.15.0",
-    "urllib3==2.7.0"
+    "text-unidecode>=1.3",
+    "typing-extensions>=4.15.0",
+    "urllib3>=2.7.0",
 ]
 
 [tool.pytest.ini_options]
@@ -38,7 +40,19 @@ testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py", "*_tests.py"]
 python_functions = ["test_*"]
 norecursedirs = [".git", ".venv", ".claude", "__pycache__", "build", "dist", "*.egg-info"]
-addopts = "-v -ra --strict-markers --tb=short --headed --tracing=retain-on-failure --screenshot=on --output=test-result/traces/ --html=test-result/report.html --self-contained-html"
+addopts = [
+    "-v",
+    "-ra",
+    "--strict-markers",
+    "--tb=short",
+    "--headed",
+    "--tracing=retain-on-failure",
+    "--screenshot=on",
+    "--output=test-result/traces/",
+    "--html=test-result/report.html",
+    "--self-contained-html",
+    "--alluredir=test-result/allure-results"
+]
 markers = [
     "api: API Tests",
     "smoke: Smoke Tests",

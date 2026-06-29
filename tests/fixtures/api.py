@@ -2,8 +2,10 @@ import re
 from pathlib import Path
 from typing import Any, Generator, cast
 
+import allure
 import pytest
 import requests
+from playwright.sync_api import Page
 
 from src.api.client import ApiClient
 from src.api.controllers.project_controller import ProjectController
@@ -14,6 +16,7 @@ from src.web.application import Application
 from tests.fixtures.configs import Configs
 
 STORAGE_STATE_PATH = Path("test-result/.auth/storage_state.json")
+TRACES_DIR = Path("test-result/traces")
 
 
 @pytest.fixture(scope="session")
@@ -125,3 +128,27 @@ def api_login(
             app.page.context.tracing.stop(path=str(trace_path))
         else:
             app.page.context.tracing.stop()
+
+
+def stop_tracing_on_failure(page: Page, request: pytest.FixtureRequest) -> None:
+    """Stop tracing and save only if test failed. Attaches screenshot and trace to Allure."""
+    failed = hasattr(request.node, "rep_call") and request.node.rep_call.failed
+    if failed:
+        allure.attach(
+            page.screenshot(),
+            name="screenshot",
+            attachment_type=allure.attachment_type.PNG,
+        )
+
+        trace_path = TRACES_DIR / f"{request.node.name}.zip"
+        trace_path.parent.mkdir(parents=True, exist_ok=True)
+        page.context.tracing.stop(path=trace_path)
+
+        allure.attach.file(
+            str(trace_path),
+            name="trace",
+            extension="zip",
+            attachment_type="application/vnd.allure.playwright-trace",
+        )
+    else:
+        page.context.tracing.stop()
