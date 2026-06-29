@@ -13,9 +13,9 @@ on:
         default: 'smoke'
         type: choice
         options:
+          - api
           - smoke
           - regression
-          - api
 
 jobs:
   lint:
