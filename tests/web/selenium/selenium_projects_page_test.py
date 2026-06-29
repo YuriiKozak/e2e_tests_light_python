@@ -1,5 +1,4 @@
 import pytest
-from fixtures.configs import Configs
 from selenium.common import NoSuchElementException, StaleElementReferenceException
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
@@ -8,6 +7,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from src.web.selenium.pages.login_page import LoginPage
 from src.web.selenium.pages.login_page_v2 import LoginPageV2
+from tests.fixtures.configs import Configs
 
 FREE_PROJECTS = "Free Projects"
 TARGET_PROJECT = "Popopo"

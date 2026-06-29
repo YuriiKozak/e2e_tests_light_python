@@ -9,7 +9,7 @@ class SuiteController(BaseController):
         title: str,
         description: str | None = None,
     ) -> Suite:
-        attributes = {"title", title, "description", description}
+        attributes = {"title": title, "description": description}
         data = self._post(
             endpoint=f"/api/{project_id}/suites",
             data={"data": {"type": "suites", "attributes": attributes}},
@@ -27,7 +27,7 @@ class SuiteController(BaseController):
         title: str | None = None,
         description: str | None = None,
     ) -> Suite:
-        attributes = {"title", title, "description", description}
+        attributes = {"title": title, "description": description}
         data = self._put(
             endpoint=f"/api/{project_id}/suites/{suite_id}",
             data={"data": {"type": "suites", "attributes": attributes}},
