@@ -7,7 +7,7 @@ def browser_type_launch_args(browser_type_launch_args: dict) -> dict:
     return {
         **browser_type_launch_args,
         "channel": "chromium",
-        "headless": False,
+        "headless": True,
         "slow_mo": 300,
         "timeout": 30000,
     }
