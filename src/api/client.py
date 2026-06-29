@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, List
+from typing import Any
 
 import requests
 
@@ -20,7 +20,7 @@ class ApiClient:
         data = response.json()
         return data["jwt"]
 
-    def get_session_cookies(self, email: str, password: str) -> List[Dict[str, Any]]:
+    def get_session_cookies(self, email: str, password: str) -> list[dict[str, Any]]:
         """
         Logs in via Devise HTML POST /users/sign_in to obtain session cookies
         which can be injected into the browser context.
@@ -64,7 +64,7 @@ class ApiClient:
                 is_httponly = True
             else:
                 rest = getattr(cookie, "_rest", {})
-                for k in rest.keys():
+                for k in rest:
                     if k.lower() == "httponly":
                         is_httponly = True
                         break

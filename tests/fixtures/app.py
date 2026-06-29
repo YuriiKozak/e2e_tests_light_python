@@ -1,6 +1,7 @@
+import contextlib
 import re
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 import allure
 import pytest
@@ -44,7 +45,7 @@ def browser_context_args(browser_context_args: dict, configs: Configs) -> dict:
 
 
 @pytest.fixture(scope="function")
-def context(browser, browser_context_args: dict) -> Generator[BrowserContext, None, None]:
+def context(browser, browser_context_args: dict) -> Generator[BrowserContext]:
     """
     Overrides the default Playwright context fixture to dynamically load storage state if it exists.
     This ensures that tests executing in the same session can share state even if the
@@ -86,7 +87,7 @@ def login(configs: Configs, app: Application) -> None:
 
 
 @pytest.fixture(scope="function")
-def clean_context(browser, browser_context_args: dict) -> Generator[BrowserContext, None, None]:
+def clean_context(browser, browser_context_args: dict) -> Generator[BrowserContext]:
     """Provides a fresh, unauthenticated browser context by stripping any storage state."""
     args = {**browser_context_args}
     args.pop("storage_state", None)
@@ -96,7 +97,7 @@ def clean_context(browser, browser_context_args: dict) -> Generator[BrowserConte
 
 
 @pytest.fixture(scope="function")
-def clean_page(clean_context: BrowserContext) -> Generator[Page, None, None]:
+def clean_page(clean_context: BrowserContext) -> Generator[Page]:
     """Provides a fresh, unauthenticated browser page."""
     page = clean_context.new_page()
     yield page
@@ -115,7 +116,7 @@ def clean_app(clean_page: Page) -> Application:
 
 
 @pytest.fixture(scope="module")
-def session_context(browser, browser_context_args: dict) -> Generator[BrowserContext, None, None]:
+def session_context(browser, browser_context_args: dict) -> Generator[BrowserContext]:
     """Module-scoped browser context to avoid reopening the browser between tests. Forces clean state."""
     args = {**browser_context_args}
     args.pop("storage_state", None)
@@ -125,7 +126,7 @@ def session_context(browser, browser_context_args: dict) -> Generator[BrowserCon
 
 
 @pytest.fixture(scope="module")
-def session_page(session_context: BrowserContext) -> Generator[Page, None, None]:
+def session_page(session_context: BrowserContext) -> Generator[Page]:
     """Module-scoped browser page to reuse the same tab across multiple tests."""
     page = session_context.new_page()
     yield page
@@ -139,7 +140,7 @@ def session_app(session_page: Page) -> Application:
 
 
 @pytest.fixture(scope="function", autouse=True)
-def clear_session_page_state(request) -> Generator[None, None, None]:
+def clear_session_page_state(request) -> Generator[None]:
     """
     Clears cookies, localStorage, and sessionStorage between tests to maintain state isolation,
     but only if the test actually used the session-scoped page.
@@ -173,27 +174,23 @@ def pytest_collection_modifyitems(items):
 @pytest.fixture(scope="function", autouse=True)
 def stop_tracing_on_failure(
     request: pytest.FixtureRequest,
-) -> Generator[None, None, None]:
+) -> Generator[None]:
     """Start tracing, yield, then stop tracing and attach screenshot and trace to Allure if failed."""
     if "page" in request.fixturenames or "app" in request.fixturenames or "api_login" in request.fixturenames:
         page = request.getfixturevalue("page")
         page.context.tracing.start(screenshots=True, snapshots=True, sources=True)
         yield
-        failed = False
-        if hasattr(request.node, "rep_call") and request.node.rep_call.failed:
-            failed = True
-        elif hasattr(request.node, "rep_setup") and request.node.rep_setup.failed:
-            failed = True
+        has_call_failed = hasattr(request.node, "rep_call") and request.node.rep_call.failed
+        has_setup_failed = hasattr(request.node, "rep_setup") and request.node.rep_setup.failed
+        failed = has_call_failed or has_setup_failed
 
         if failed:
-            try:
+            with contextlib.suppress(Exception):
                 allure.attach(
                     page.screenshot(),
                     name="screenshot",
                     attachment_type=allure.attachment_type.PNG,
                 )
-            except Exception:
-                pass
 
             clean_name = re.sub(r'[\\/*?:"<>|]', "_", request.node.name)
             trace_path = Path("test-result/traces") / f"{clean_name}_trace.zip"
@@ -209,9 +206,7 @@ def stop_tracing_on_failure(
             except Exception:
                 pass
         else:
-            try:
+            with contextlib.suppress(Exception):
                 page.context.tracing.stop()
-            except Exception:
-                pass
     else:
         yield

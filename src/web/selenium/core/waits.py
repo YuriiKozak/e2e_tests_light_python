@@ -1,4 +1,5 @@
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from selenium.common import NoSuchElementException, StaleElementReferenceException
 from selenium.webdriver.remote.webdriver import WebDriver

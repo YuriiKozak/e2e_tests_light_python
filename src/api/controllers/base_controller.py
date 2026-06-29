@@ -40,7 +40,7 @@ class BaseController:
         url = self._url(endpoint)
         logger.info("GET %s", url)
         response = self._client.get(url=url, headers=self._headers(), timeout=30)
-        logger.info("Response [%s]: %s", response.status_code, response.json())
+        logger.info("Response [%s]: %s", response.status_code, response.text)
         response.raise_for_status()
         return response.json()
 
@@ -48,7 +48,7 @@ class BaseController:
         url = self._url(endpoint)
         logger.info("POST %s | Body: %s", url, data)
         response = self._client.post(url=url, headers=self._headers(), json=data, timeout=30)
-        logger.info("Response [%s]: %s", response.status_code, response.json())
+        logger.info("Response [%s]: %s", response.status_code, response.text)
         response.raise_for_status()
         return response.json()
 
@@ -56,7 +56,7 @@ class BaseController:
         url = self._url(endpoint)
         logger.info("PUT %s | Body: %s", url, data)
         response = self._client.put(url=url, headers=self._headers(), json=data, timeout=30)
-        logger.info("Response [%s]: %s", response.status_code, response.json())
+        logger.info("Response [%s]: %s", response.status_code, response.text)
         response.raise_for_status()
         return response.json()
 
