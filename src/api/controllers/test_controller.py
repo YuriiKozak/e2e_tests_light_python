@@ -3,6 +3,8 @@ from src.api.models.models import Test
 
 
 class TestController(BaseController):
+    __test__ = False
+
     def get_by_id(self, project_id: str, test_id: str) -> Test:
         data = self._get(f"/api/{project_id}/tests/{test_id}")
         return Test.model_validate(data["data"])

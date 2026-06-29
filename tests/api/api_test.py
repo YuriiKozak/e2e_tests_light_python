@@ -17,13 +17,9 @@ def test_create_suite(
 ):
     # Create suite
     suite_name = fake.sentence()
-    suite_response = suite_controller.create(
-        project_id=project.id, title=suite_name, description=fake.paragraph()
-    )
+    suite_response = suite_controller.create(project_id=project.id, title=suite_name, description=fake.paragraph())
 
-    actual_test_suite = suite_controller.get_by_id(
-        project_id=project.id, suite_id=suite_response.id
-    )
+    actual_test_suite = suite_controller.get_by_id(project_id=project.id, suite_id=suite_response.id)
 
     assert suite_response.id == actual_test_suite.id
     assert suite_response.attributes.title == actual_test_suite.attributes.title

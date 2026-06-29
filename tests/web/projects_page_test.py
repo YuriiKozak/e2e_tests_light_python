@@ -8,11 +8,7 @@ TARGET_PROJECT = "Popopo"
 
 @pytest.mark.regression
 def test_project_search(login, app: Application):
-    (
-        app.projects_page.is_loaded()
-        .search_project(TARGET_PROJECT)
-        .result_project(TARGET_PROJECT)
-    )
+    (app.projects_page.is_loaded().search_project(TARGET_PROJECT).result_project(TARGET_PROJECT))
 
 
 @pytest.mark.regression

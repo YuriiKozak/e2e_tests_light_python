@@ -76,3 +76,9 @@ output = "./src/api/models/models.py"
 target-python-version = "3.14"
 snake-case-field = true
 field-constraints = true
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+ignore = ["E501"]

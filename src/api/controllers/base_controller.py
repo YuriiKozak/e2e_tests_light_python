@@ -47,9 +47,7 @@ class BaseController:
     def _post(self, endpoint: str, data: dict) -> dict:
         url = self._url(endpoint)
         logger.info("POST %s | Body: %s", url, data)
-        response = self._client.post(
-            url=url, headers=self._headers(), json=data, timeout=30
-        )
+        response = self._client.post(url=url, headers=self._headers(), json=data, timeout=30)
         logger.info("Response [%s]: %s", response.status_code, response.json())
         response.raise_for_status()
         return response.json()
@@ -57,9 +55,7 @@ class BaseController:
     def _put(self, endpoint: str, data: dict) -> dict:
         url = self._url(endpoint)
         logger.info("PUT %s | Body: %s", url, data)
-        response = self._client.put(
-            url=url, headers=self._headers(), json=data, timeout=30
-        )
+        response = self._client.put(url=url, headers=self._headers(), json=data, timeout=30)
         logger.info("Response [%s]: %s", response.status_code, response.json())
         response.raise_for_status()
         return response.json()

@@ -32,9 +32,7 @@ class ApiClient:
         # Extract CSRF token
         match = re.search(r'name="authenticity_token"\s+value="([^"]+)"', r_get.text)
         if not match:
-            match = re.search(
-                r'value="([^"]+)"\s+name="authenticity_token"', r_get.text
-            )
+            match = re.search(r'value="([^"]+)"\s+name="authenticity_token"', r_get.text)
         csrf_token = match.group(1) if match else None
 
         if not csrf_token:
@@ -42,9 +40,7 @@ class ApiClient:
             csrf_token = match_meta.group(1) if match_meta else None
 
         if not csrf_token:
-            raise ValueError(
-                "Could not find authenticity token (CSRF token) on sign_in page"
-            )
+            raise ValueError("Could not find authenticity token (CSRF token) on sign_in page")
 
         # POST /users/sign_in
         payload = {
@@ -64,9 +60,7 @@ class ApiClient:
 
             # Determine HttpOnly using public methods or dynamic lookup to avoid IDE warnings
             is_httponly = False
-            if cookie.has_nonstandard_attr("HttpOnly") or cookie.has_nonstandard_attr(
-                "httponly"
-            ):
+            if cookie.has_nonstandard_attr("HttpOnly") or cookie.has_nonstandard_attr("httponly"):
                 is_httponly = True
             else:
                 rest = getattr(cookie, "_rest", {})

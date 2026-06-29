@@ -1,9 +1,9 @@
 import pytest
 
 pytest_plugins = [
+    "tests.fixtures.configs",
     "tests.fixtures.api",
     "tests.fixtures.app",
-    "tests.fixtures.configs",
     "tests.fixtures.playwright",
     "tests.fixtures.selenium",
 ]

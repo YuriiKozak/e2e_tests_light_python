@@ -44,9 +44,7 @@ def browser_context_args(browser_context_args: dict, configs: Configs) -> dict:
 
 
 @pytest.fixture(scope="function")
-def context(
-    browser, browser_context_args: dict
-) -> Generator[BrowserContext, None, None]:
+def context(browser, browser_context_args: dict) -> Generator[BrowserContext, None, None]:
     """
     Overrides the default Playwright context fixture to dynamically load storage state if it exists.
     This ensures that tests executing in the same session can share state even if the
@@ -88,9 +86,7 @@ def login(configs: Configs, app: Application) -> None:
 
 
 @pytest.fixture(scope="function")
-def clean_context(
-    browser, browser_context_args: dict
-) -> Generator[BrowserContext, None, None]:
+def clean_context(browser, browser_context_args: dict) -> Generator[BrowserContext, None, None]:
     """Provides a fresh, unauthenticated browser context by stripping any storage state."""
     args = {**browser_context_args}
     args.pop("storage_state", None)
@@ -119,9 +115,7 @@ def clean_app(clean_page: Page) -> Application:
 
 
 @pytest.fixture(scope="module")
-def session_context(
-    browser, browser_context_args: dict
-) -> Generator[BrowserContext, None, None]:
+def session_context(browser, browser_context_args: dict) -> Generator[BrowserContext, None, None]:
     """Module-scoped browser context to avoid reopening the browser between tests. Forces clean state."""
     args = {**browser_context_args}
     args.pop("storage_state", None)
@@ -155,9 +149,7 @@ def clear_session_page_state(request) -> Generator[None, None, None]:
         yield
         try:
             session_page.context.clear_cookies()
-            session_page.evaluate(
-                "() => { localStorage.clear(); sessionStorage.clear(); }"
-            )
+            session_page.evaluate("() => { localStorage.clear(); sessionStorage.clear(); }")
             session_page.wait_for_timeout(1000)
         except PlaywrightError:
             pass
@@ -183,11 +175,7 @@ def stop_tracing_on_failure(
     request: pytest.FixtureRequest,
 ) -> Generator[None, None, None]:
     """Start tracing, yield, then stop tracing and attach screenshot and trace to Allure if failed."""
-    if (
-        "page" in request.fixturenames
-        or "app" in request.fixturenames
-        or "api_login" in request.fixturenames
-    ):
+    if "page" in request.fixturenames or "app" in request.fixturenames or "api_login" in request.fixturenames:
         page = request.getfixturevalue("page")
         page.context.tracing.start(screenshots=True, snapshots=True, sources=True)
         yield

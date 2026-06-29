@@ -142,9 +142,7 @@ class Requirement(BaseModel):
     title: str | None = None
     description: str | None = None
     summary: str | None = None
-    details: str | None = Field(
-        None, description="Extended details or raw content of the requirement"
-    )
+    details: str | None = Field(None, description="Extended details or raw content of the requirement")
     message: str | None = Field(None, description="Processing message or error details")
     source_type: SourceType | None = None
     source_key: str | None = None
@@ -168,9 +166,7 @@ class RequirementCreateInput(BaseModel):
     details: str | None = None
     active: bool | None = None
     global_: bool | None = Field(None, alias="global")
-    confluence_url: str | None = Field(
-        None, description="Required for confluence requirements"
-    )
+    confluence_url: str | None = Field(None, description="Required for confluence requirements")
     files: list[bytes] | None = Field(
         None,
         description="Files to attach to the requirement. Allowed extensions: pdf, doc, docx, xls, xlsx, csv, txt, md, html, xml, json, feature, png, jpg, jpeg, gif, svg, webp",
@@ -179,9 +175,7 @@ class RequirementCreateInput(BaseModel):
 
 class RequirementUpdateInput(BaseModel):
     title: str | None = None
-    description: str | None = Field(
-        None, description="Only applied for text requirements"
-    )
+    description: str | None = Field(None, description="Only applied for text requirements")
     details: str | None = None
     active: bool | None = None
     global_: bool | None = Field(None, alias="global")
@@ -219,17 +213,11 @@ class Testrun(BaseModel):
     id: int | None = None
     type: Type5 | None = None
     test_title: str | None = None
-    suite_title: str | None = Field(
-        None, description="Tag-stripped title of the test's parent suite"
-    )
+    suite_title: str | None = Field(None, description="Tag-stripped title of the test's parent suite")
     message: str | None = None
-    status: str | None = Field(
-        None, description="One of: passed, failed, skipped, pending"
-    )
+    status: str | None = Field(None, description="One of: passed, failed, skipped, pending")
     substatus: str | None = None
-    run_time: int | None = Field(
-        None, description="Test execution duration in milliseconds"
-    )
+    run_time: int | None = Field(None, description="Test execution duration in milliseconds")
     automated: bool | None = None
     assigned_to: EmailStr | None = None
     run_id: str | None = Field(None, description="Public UID of the parent run")
@@ -267,9 +255,7 @@ class Rungroup(BaseModel):
     tests_count: int | None = None
     archived_at: AwareDatetime | None = None
     updated_at: AwareDatetime | None = None
-    parent_id: str | None = Field(
-        None, description="Public UID of the parent run group"
-    )
+    parent_id: str | None = Field(None, description="Public UID of the parent run group")
     children: list[Rungroup] | None = Field(
         None,
         description="Nested child run groups (present in tree responses when children exist)",
@@ -308,21 +294,11 @@ class Issue(BaseModel):
     type: Type8 | None = None
     title: str | None = None
     url: str | None = None
-    source: str | None = Field(
-        None, description="Integration source (e.g. github, jira, linear, link)"
-    )
-    resource_type: str | None = Field(
-        None, description="Type of linked resource (test, suite, run, testrun, plan)"
-    )
-    resource_id: str | None = Field(
-        None, description="Public UID of the linked resource"
-    )
-    jira_id: str | None = Field(
-        None, description="Jira issue key (only for type=jira_issue)"
-    )
-    synced: bool | None = Field(
-        None, description="Jira sync status (only for type=jira_issue)"
-    )
+    source: str | None = Field(None, description="Integration source (e.g. github, jira, linear, link)")
+    resource_type: str | None = Field(None, description="Type of linked resource (test, suite, run, testrun, plan)")
+    resource_id: str | None = Field(None, description="Public UID of the linked resource")
+    jira_id: str | None = Field(None, description="Jira issue key (only for type=jira_issue)")
+    synced: bool | None = Field(None, description="Jira sync status (only for type=jira_issue)")
 
 
 class LabelAttachment(BaseModel):
@@ -332,9 +308,7 @@ class LabelAttachment(BaseModel):
     position: int | None = None
     visibility: str | None = None
     list: bool | None = None
-    value: str | None = Field(
-        None, description="Custom field value (if label has a field type)"
-    )
+    value: str | None = Field(None, description="Custom field value (if label has a field type)")
     short: str | None = Field(None, description="Short display format for the field")
 
 
@@ -422,23 +396,17 @@ class TestInput(BaseModel):
     emoji: str | None = None
     suite_id: str = Field(..., description="Public UID of the parent suite")
     priority: Priority1 | None = None
-    assigned_to: EmailStr | None = Field(
-        None, description="Email address of a non-readonly project member to assign."
-    )
+    assigned_to: EmailStr | None = Field(None, description="Email address of a non-readonly project member to assign.")
     code: str | None = None
     state: str | None = None
-    link: list[LinkAction] | None = Field(
-        None, description="Add/remove labels, tags, issues, or jira links"
-    )
+    link: list[LinkAction] | None = Field(None, description="Add/remove labels, tags, issues, or jira links")
 
 
 class SuiteChildInput(BaseModel):
     title: str
     description: str | None = None
     emoji: str | None = None
-    children: list[SuiteChildInput] | None = Field(
-        None, description="Nested child suites (recursive)"
-    )
+    children: list[SuiteChildInput] | None = Field(None, description="Nested child suites (recursive)")
 
 
 class PlanInput(BaseModel):
@@ -460,25 +428,17 @@ class PlanInput(BaseModel):
         description="TQL query expression to filter tests for the plan (e.g. `priority == 'high'`).",
         examples=["priority == 'high'"],
     )
-    link: list[LinkAction] | None = Field(
-        None, description="Add/remove labels or issues/jira links"
-    )
+    link: list[LinkAction] | None = Field(None, description="Add/remove labels or issues/jira links")
 
 
 class RunCreateInput(BaseModel):
     title: str
     description: str | None = None
-    plan_ids: list[str] | None = Field(
-        None, description="List of plan public UIDs to include in the run"
-    )
+    plan_ids: list[str] | None = Field(None, description="List of plan public UIDs to include in the run")
     kind: Kind | None = None
     rungroup_id: str | None = Field(None, description="Public UID of the run group")
-    env: str | None = Field(
-        None, description="Environment(s) for this run, comma-separated"
-    )
-    assigned_to: EmailStr | None = Field(
-        None, description="Email address of a non-readonly project member to assign."
-    )
+    env: str | None = Field(None, description="Environment(s) for this run, comma-separated")
+    assigned_to: EmailStr | None = Field(None, description="Email address of a non-readonly project member to assign.")
     assign_strategy: AssignStrategy | None = Field(
         None,
         description="Strategy for assigning testruns to users:\n- `test`: assign each testrun to the user assigned to the corresponding test\n- `random`: distribute testruns evenly across all run assistants\n- `none`: no automatic assignment (default)\n",
@@ -496,9 +456,7 @@ class RunCreateInput(BaseModel):
         description="List of environments for multi-environment run creation. Only applicable when `kind` is `manual` (or not specified). When provided, a separate Run is created for each environment and grouped into a Rungroup. Ignored for `automated` and `mixed` kinds.\n",
         examples=[["staging", "production"]],
     )
-    link: list[LinkAction] | None = Field(
-        None, description="Add/remove labels or issues/jira links"
-    )
+    link: list[LinkAction] | None = Field(None, description="Add/remove labels or issues/jira links")
 
 
 class StatusEvent(StrEnum):
@@ -515,43 +473,31 @@ class RunUpdateInput(BaseModel):
     description: str | None = None
     kind: Kind | None = None
     rungroup_id: str | None = Field(None, description="Public UID of the run group")
-    env: str | None = Field(
-        None, description="Environment(s) for this run, comma-separated"
-    )
+    env: str | None = Field(None, description="Environment(s) for this run, comma-separated")
     status_event: StatusEvent | None = Field(
         None,
         description="Trigger a run status transition:\n- `finish`: Finish an automated run; final status is calculated from test results\n- `finish_manual`: Finish a manual/mixed run; final status is calculated from test results\n- `launch`: Start the run\n- `rerun`: Restart the run\n- `scheduled`: Move the run back to scheduled state\n- `terminate`: Stop the run and mark it as terminated\n",
     )
-    assigned_to: EmailStr | None = Field(
-        None, description="Email address of a non-readonly project member to assign."
-    )
+    assigned_to: EmailStr | None = Field(None, description="Email address of a non-readonly project member to assign.")
     assign_strategy: AssignStrategy | None = Field(
         None,
         description="Strategy for assigning testruns to users:\n- `test`: assign each testrun to the user assigned to the corresponding test\n- `random`: distribute testruns evenly across all run assistants\n- `none`: no automatic assignment (default)\n",
     )
-    test_ids: list[str] | None = Field(
-        None, description="List of test public UIDs to append to the run configuration"
-    )
+    test_ids: list[str] | None = Field(None, description="List of test public UIDs to append to the run configuration")
     suite_ids: list[str] | None = Field(
         None,
         description="List of suite public UIDs whose tests will be appended to the run configuration",
     )
-    link: list[LinkAction] | None = Field(
-        None, description="Add/remove labels or issues/jira links"
-    )
+    link: list[LinkAction] | None = Field(None, description="Add/remove labels or issues/jira links")
 
 
 class TestrunInput(BaseModel):
     run_id: str = Field(..., description="Public UID of the run")
     test_id: str | None = Field(None, description="Public UID of the test")
-    status: str | None = Field(
-        None, description="One of: passed, failed, skipped, pending"
-    )
+    status: str | None = Field(None, description="One of: passed, failed, skipped, pending")
     message: str | None = None
     run_time: float | None = None
-    assigned_to: EmailStr | None = Field(
-        None, description="Email address of a non-readonly project member to assign."
-    )
+    assigned_to: EmailStr | None = Field(None, description="Email address of a non-readonly project member to assign.")
     test_title: str | None = None
     automated: bool | None = None
 
@@ -563,9 +509,7 @@ class RungroupChildInput(BaseModel):
     kind: str | None = None
     pin: bool | None = None
     status: str | None = None
-    children: list[RungroupChildInput] | None = Field(
-        None, description="Nested child run groups (recursive)"
-    )
+    children: list[RungroupChildInput] | None = Field(None, description="Nested child run groups (recursive)")
 
 
 class StepInput(BaseModel):
@@ -622,13 +566,9 @@ class Test(BaseModel):
     description: str | None = None
     position: int | None = None
     suite_id: str | None = Field(None, description="Public UID of the parent suite")
-    suite_title: str | None = Field(
-        None, description="Tag-stripped title of the parent suite"
-    )
+    suite_title: str | None = Field(None, description="Tag-stripped title of the parent suite")
     labels: list[LabelAttachment] | None = None
-    url: str | None = Field(
-        None, description="URL to this test in Testomat.io (returned on create/update)"
-    )
+    url: str | None = Field(None, description="URL to this test in Testomat.io (returned on create/update)")
 
 
 class Suite(BaseModel):
@@ -649,9 +589,7 @@ class Suite(BaseModel):
     sync: bool | None = None
     description: str | None = None
     file: str | None = Field(None, description="File path associated with this suite")
-    parent_id: str | None = Field(
-        None, description="Public UID of the parent suite, or null for root suites"
-    )
+    parent_id: str | None = Field(None, description="Public UID of the parent suite, or null for root suites")
     labels: list[LabelAttachment] | None = None
     requirements: list[LinkedRequirement] | None = Field(
         None, description="Attached and global requirements for this suite"
@@ -660,9 +598,7 @@ class Suite(BaseModel):
         None,
         description="Nested child suites (present in tree responses when children exist)",
     )
-    url: str | None = Field(
-        None, description="URL to this suite in Testomat.io (returned on create/update)"
-    )
+    url: str | None = Field(None, description="URL to this suite in Testomat.io (returned on create/update)")
 
 
 class Plan(BaseModel):
@@ -673,9 +609,7 @@ class Plan(BaseModel):
     kind: Kind | None = Field(None, description="Plan type")
     hidden: bool | None = None
     labels: list[LabelAttachment] | None = None
-    url: str | None = Field(
-        None, description="URL to this plan in Testomat.io (returned on create/update)"
-    )
+    url: str | None = Field(None, description="URL to this plan in Testomat.io (returned on create/update)")
 
 
 class Run(BaseModel):
@@ -684,17 +618,11 @@ class Run(BaseModel):
     title: str | None = None
     clean_title: str | None = None
     kind: Kind | None = Field(None, description="Run type")
-    rungroup_id: str | None = Field(
-        None, description="Public UID of the rungroup this run belongs to"
-    )
-    plan_id: str | None = Field(
-        None, description="Public UID of the plan this run created from"
-    )
+    rungroup_id: str | None = Field(None, description="Public UID of the rungroup this run belongs to")
+    plan_id: str | None = Field(None, description="Public UID of the plan this run created from")
     assigned_to: EmailStr | None = None
     assign_strategy: AssignStrategy | None = None
-    env: str | None = Field(
-        None, description="Environment(s) for this run, comma-separated"
-    )
+    env: str | None = Field(None, description="Environment(s) for this run, comma-separated")
     description: str | None = None
     labels: list[LabelAttachment] | None = None
     public_report_url: str | None = Field(
@@ -709,9 +637,7 @@ class Run(BaseModel):
         None,
         description="Expiration date of the public report link. Present only when the run is published.",
     )
-    url: str | None = Field(
-        None, description="URL to this run in Testomat.io (returned on create/update)"
-    )
+    url: str | None = Field(None, description="URL to this run in Testomat.io (returned on create/update)")
 
 
 class Step(BaseModel):
@@ -724,9 +650,7 @@ class Step(BaseModel):
     usage_count: int | None = None
     keywords: list[str] | None = None
     labels: list[LabelAttachment] | None = None
-    url: str | None = Field(
-        None, description="URL to this step in Testomat.io (returned on create/update)"
-    )
+    url: str | None = Field(None, description="URL to this step in Testomat.io (returned on create/update)")
 
 
 class SuiteInput(BaseModel):
@@ -738,9 +662,7 @@ class SuiteInput(BaseModel):
         None,
         description="Auto-detected from children: 'folder' if children provided, 'file' otherwise. Can be overridden explicitly.",
     )
-    assigned_to: EmailStr | None = Field(
-        None, description="Email address of a non-readonly project member to assign."
-    )
+    assigned_to: EmailStr | None = Field(None, description="Email address of a non-readonly project member to assign.")
     file: str | None = Field(
         None,
         description="File path to associate with the suite. Only applicable when file_type is 'file'.",
@@ -749,9 +671,7 @@ class SuiteInput(BaseModel):
         None,
         description="Nested child suites to create recursively. When provided, file_type is auto-set to 'folder'.",
     )
-    link: list[LinkAction] | None = Field(
-        None, description="Add/remove labels, tags, issues, or jira links"
-    )
+    link: list[LinkAction] | None = Field(None, description="Add/remove labels, tags, issues, or jira links")
 
 
 class RungroupInput(BaseModel):
@@ -761,12 +681,8 @@ class RungroupInput(BaseModel):
     kind: str | None = None
     pin: bool | None = None
     status: str | None = None
-    parent_id: str | None = Field(
-        None, description="Public UID of the parent run group"
-    )
-    children: list[RungroupChildInput] | None = Field(
-        None, description="Nested child run groups to create recursively"
-    )
+    parent_id: str | None = Field(None, description="Public UID of the parent run group")
+    children: list[RungroupChildInput] | None = Field(None, description="Nested child run groups to create recursively")
 
 
 Rungroup.model_rebuild()

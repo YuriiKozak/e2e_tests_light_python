@@ -35,9 +35,7 @@ class BasePage:
         self.wait.for_clickable(target).click()
         return self
 
-    def type_text(
-        self, target: LocatorOrElement, text: str, clear: bool = True
-    ) -> Self:
+    def type_text(self, target: LocatorOrElement, text: str, clear: bool = True) -> Self:
         element = self.wait.for_visible(target)
         if clear:
             element.clear()

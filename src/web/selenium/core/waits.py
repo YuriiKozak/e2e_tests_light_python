@@ -25,9 +25,7 @@ class Wait:
             ignored_exceptions=self.IGNORED_EXCEPTIONS,
         )
 
-    def for_visible(
-        self, target: LocatorOrElement, custom_timeout: int | None = None
-    ) -> WebElement:
+    def for_visible(self, target: LocatorOrElement, custom_timeout: int | None = None) -> WebElement:
         """Waits until element is visible, using custom timeout."""
         wait = self._wait
         if custom_timeout is not None:
@@ -57,25 +55,17 @@ class Wait:
         """Waits until all elements are present in DOM."""
         return self._wait.until(EC.presence_of_all_elements_located(locator))
 
-    def for_clickable(
-        self, target: LocatorOrElement
-    ) -> WebElement | bool | tuple[str, str]:
+    def for_clickable(self, target: LocatorOrElement) -> WebElement | bool | tuple[str, str]:
         """Waits until element is clickable (visible and enabled)."""
         if isinstance(target, tuple):
             return self._wait.until(EC.element_to_be_clickable(target))
 
-        return self._wait.until(
-            lambda _: (
-                target if (target.is_displayed() and target.is_enabled()) else False
-            )
-        )
+        return self._wait.until(lambda _: target if (target.is_displayed() and target.is_enabled()) else False)
 
     def for_text_present(self, target: LocatorOrElement, text: str) -> bool:
         """Waits until text is present in element."""
         if isinstance(target, tuple):
-            return self._wait.until(
-                EC.text_to_be_present_in_element(locator=target, text_=text)
-            )
+            return self._wait.until(EC.text_to_be_present_in_element(locator=target, text_=text))
 
         return self._wait.until(lambda _: text in target.text)
 
@@ -98,8 +88,6 @@ class Wait:
         """Waits until the condition is met."""
         return self._wait.until(condition, message)
 
-    def until_not(
-        self, condition: Callable[[WebDriver], Any], message: str = ""
-    ) -> Any:
+    def until_not(self, condition: Callable[[WebDriver], Any], message: str = "") -> Any:
         """Waits until the condition is not met."""
         return self._wait.until_not(condition, message)

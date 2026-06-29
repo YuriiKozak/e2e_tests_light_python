@@ -21,9 +21,7 @@ class ProjectPage:
 
     @allure.step("Verify project title is: {expected_project_title}")
     def project_title_is(self, expected_project_title: str) -> Self:
-        expect(
-            self.page.get_by_role("heading", name=expected_project_title)
-        ).to_be_visible()
+        expect(self.page.get_by_role("heading", name=expected_project_title)).to_be_visible()
         return self
 
     @allure.step("Close README panel")

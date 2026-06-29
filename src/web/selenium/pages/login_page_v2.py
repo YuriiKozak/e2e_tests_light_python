@@ -13,15 +13,11 @@ class LoginPageV2(BasePage):
 
     @property
     def email_input(self) -> WebElement:
-        return self.driver.find_element(
-            by=By.CSS_SELECTOR, value="#content-desktop #user_email"
-        )
+        return self.driver.find_element(by=By.CSS_SELECTOR, value="#content-desktop #user_email")
 
     @property
     def password_input(self) -> WebElement:
-        return self.driver.find_element(
-            by=By.CSS_SELECTOR, value="#content-desktop #user_password"
-        )
+        return self.driver.find_element(by=By.CSS_SELECTOR, value="#content-desktop #user_password")
 
     @property
     def remember_me_checkbox(self) -> WebElement:
@@ -29,15 +25,11 @@ class LoginPageV2(BasePage):
 
     @property
     def sign_in_button(self) -> WebElement:
-        return self.driver.find_element(
-            by=By.CSS_SELECTOR, value="#content-desktop [value='Sign In']"
-        )
+        return self.driver.find_element(by=By.CSS_SELECTOR, value="#content-desktop [value='Sign In']")
 
     @property
     def success_message(self) -> WebElement:
-        return self.driver.find_element(
-            by=By.CSS_SELECTOR, value="#content-desktop .common-flash-success"
-        )
+        return self.driver.find_element(by=By.CSS_SELECTOR, value="#content-desktop .common-flash-success")
 
     @property
     def email_input_visible(self) -> WebElement:
@@ -45,9 +37,7 @@ class LoginPageV2(BasePage):
 
     @property
     def sign_in_button_clickable(self) -> WebElement:
-        return self.wait.for_clickable(
-            (By.CSS_SELECTOR, "#content-desktop [value='Sign In']")
-        )
+        return self.wait.for_clickable((By.CSS_SELECTOR, "#content-desktop [value='Sign In']"))
 
     def open(self, base_url: str = "") -> Self:
         self.driver.get(f"{base_url}/users/sign_in")
@@ -71,7 +61,5 @@ class LoginPageV2(BasePage):
         return self
 
     def should_see_success_message(self) -> Self:
-        self.wait.for_visible(
-            (By.CSS_SELECTOR, "#content-desktop .common-flash-success")
-        )
+        self.wait.for_visible((By.CSS_SELECTOR, "#content-desktop .common-flash-success"))
         return self

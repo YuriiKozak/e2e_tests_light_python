@@ -9,12 +9,7 @@ from src.web.components.sidebar_tab_enum import SidebarTab
 def test_new_project_creation(login, app: Application):
     project_title = Faker().company()
 
-    (
-        app.new_project_page.open()
-        .is_loaded()
-        .fill_project_title(project_title)
-        .click_create()
-    )
+    (app.new_project_page.open().is_loaded().fill_project_title(project_title).click_create())
 
     (
         app.project_page.is_loaded()

@@ -30,6 +30,5 @@ def configs() -> Configs:
         )
     except KeyError as e:
         raise ValueError(
-            f"Missing required environment variable in .env: {e.args[0]}. "
-            f"Please verify your .env file configurations."
+            f"Missing required environment variable in .env: {e.args[0]}. Please verify your .env file configurations."
         )

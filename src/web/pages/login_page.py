@@ -28,9 +28,5 @@ class LoginPage:
 
     @allure.step("Verify invalid login error message is visible")
     def invalid_login_message_visible(self) -> Self:
-        expect(
-            self.page.locator("#content-desktop").get_by_text(
-                "Invalid email or password"
-            )
-        ).to_be_visible()
+        expect(self.page.locator("#content-desktop").get_by_text("Invalid email or password")).to_be_visible()
         return self

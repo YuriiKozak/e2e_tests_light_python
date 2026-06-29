@@ -36,7 +36,5 @@ class ProjectsPage:
 
     @allure.step("Verify empty state message is visible")
     def empty_state_is_visible(self) -> Self:
-        expect(
-            self.page.get_by_text("You have not created any projects yet")
-        ).to_be_visible()
+        expect(self.page.get_by_text("You have not created any projects yet")).to_be_visible()
         return self

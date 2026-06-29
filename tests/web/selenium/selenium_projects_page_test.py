@@ -23,29 +23,15 @@ def test_project_search(driver: WebDriver, configs: Configs):
     )
 
     driver.get(configs.url)
-    driver.find_element(By.CSS_SELECTOR, "#content-desktop #user_email").send_keys(
-        configs.email
-    )
-    driver.find_element(By.CSS_SELECTOR, "#content-desktop #user_password").send_keys(
-        configs.password
-    )
+    driver.find_element(By.CSS_SELECTOR, "#content-desktop #user_email").send_keys(configs.email)
+    driver.find_element(By.CSS_SELECTOR, "#content-desktop #user_password").send_keys(configs.password)
     driver.find_element(By.CSS_SELECTOR, "#content-desktop #user_remember_me").click()
     driver.find_element(By.CSS_SELECTOR, "#content-desktop [value='Sign In']").click()
-    driver.find_element(
-        By.CSS_SELECTOR, "#content-desktop .common-flash-success"
-    ).click()
+    driver.find_element(By.CSS_SELECTOR, "#content-desktop .common-flash-success").click()
 
-    driver.find_element(By.CSS_SELECTOR, "#content-desktop #search").send_keys(
-        TARGET_PROJECT
-    )
-    driver.find_element(
-        By.CSS_SELECTOR, f"#content-desktop [title='{TARGET_PROJECT}']"
-    ).click()
-    wait.until(
-        EC.visibility_of_element_located(
-            (By.XPATH, f"//h2[contains(., '{TARGET_PROJECT}')]")
-        )
-    )
+    driver.find_element(By.CSS_SELECTOR, "#content-desktop #search").send_keys(TARGET_PROJECT)
+    driver.find_element(By.CSS_SELECTOR, f"#content-desktop [title='{TARGET_PROJECT}']").click()
+    wait.until(EC.visibility_of_element_located((By.XPATH, f"//h2[contains(., '{TARGET_PROJECT}')]")))
 
 
 @pytest.mark.regression
