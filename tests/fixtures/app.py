@@ -1,6 +1,8 @@
+import re
 from pathlib import Path
 from typing import Generator
 
+import allure
 import pytest
 from playwright.sync_api import BrowserContext, Page
 from playwright.sync_api import Error as PlaywrightError
@@ -174,3 +176,54 @@ def pytest_collection_modifyitems(items):
     to ensure stable, sequential execution order and prevent splitting.
     """
     items.sort(key=lambda item: (item.location[0], item.location[1]))
+
+
+@pytest.fixture(scope="function", autouse=True)
+def stop_tracing_on_failure(
+    request: pytest.FixtureRequest,
+) -> Generator[None, None, None]:
+    """Start tracing, yield, then stop tracing and attach screenshot and trace to Allure if failed."""
+    if (
+        "page" in request.fixturenames
+        or "app" in request.fixturenames
+        or "api_login" in request.fixturenames
+    ):
+        page = request.getfixturevalue("page")
+        page.context.tracing.start(screenshots=True, snapshots=True, sources=True)
+        yield
+        failed = False
+        if hasattr(request.node, "rep_call") and request.node.rep_call.failed:
+            failed = True
+        elif hasattr(request.node, "rep_setup") and request.node.rep_setup.failed:
+            failed = True
+
+        if failed:
+            try:
+                allure.attach(
+                    page.screenshot(),
+                    name="screenshot",
+                    attachment_type=allure.attachment_type.PNG,
+                )
+            except Exception:
+                pass
+
+            clean_name = re.sub(r'[\\/*?:"<>|]', "_", request.node.name)
+            trace_path = Path("test-result/traces") / f"{clean_name}_trace.zip"
+            trace_path.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                page.context.tracing.stop(path=str(trace_path))
+                allure.attach.file(
+                    str(trace_path),
+                    name="trace",
+                    extension="zip",
+                    attachment_type="application/vnd.allure.playwright-trace",
+                )
+            except Exception:
+                pass
+        else:
+            try:
+                page.context.tracing.stop()
+            except Exception:
+                pass
+    else:
+        yield

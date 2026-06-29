@@ -1,6 +1,7 @@
 import re
 from typing import Self
 
+import allure
 from playwright.sync_api import Locator, Page, expect
 
 from src.web.components.sidebar_tab_enum import SidebarTab
@@ -48,26 +49,31 @@ class Sidebar:
             SidebarTab.PROFILE: self.user_profile_link,
         }
 
+    @allure.step("Verify Sidebar is loaded")
     def is_loaded(self) -> Self:
         expect(self.container).to_be_visible()
         return self
 
+    @allure.step("Open Sidebar")
     def open(self) -> Self:
         self.open_button.click()
         expect(self.open_button).to_be_hidden()
         expect(self.close_button).to_be_visible()
         return self
 
+    @allure.step("Close Sidebar")
     def close(self) -> Self:
         self.close_button.click()
         expect(self.close_button).to_be_hidden()
         expect(self.open_button).to_be_visible()
         return self
 
+    @allure.step("Navigate to tab: {target}")
     def navigate_to(self, target: SidebarTab) -> Self:
         self._tab_mapping.get(target).click()
         return self
 
+    @allure.step("Verify tab {target} is active")
     def is_tab_active(self, target: SidebarTab) -> Self:
         self.page.wait_for_timeout(500)
         expect(self._tab_mapping.get(target)).to_have_class(re.compile(r"\bactive\b"))

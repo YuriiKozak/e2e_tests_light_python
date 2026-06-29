@@ -16,6 +16,7 @@ on:
           - api
           - smoke
           - regression
+          - all
 
 jobs:
   lint:
@@ -74,17 +75,103 @@ jobs:
           path: test-result/traces/
           retention-days: 14
 
+  smoke-tests:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' &&
+        (inputs.test_suite == 'smoke' || inputs.test_suite == 'all'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          install-playwright: true
+
+      - name: Run smoke tests
+        env:
+          CI: true
+          URL: ${{ secrets.URL }}
+          EMAIL: ${{ secrets.EMAIL }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          TOKEN: ${{ secrets.TOKEN }}
+        run: uv run pytest -m smoke --ignore=tests/web/selenium
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-allure-results
+          path: test-result/allure-results/
+          retention-days: 14
+
+      - name: Upload traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-traces
+          path: test-result/traces/
+          retention-days: 14
+
+  regression-tests:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' &&
+        (inputs.test_suite == 'regression' || inputs.test_suite == 'all'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          install-playwright: true
+
+      - name: Run regression tests
+        env:
+          CI: true
+          URL: ${{ secrets.URL }}
+          EMAIL: ${{ secrets.EMAIL }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          TOKEN: ${{ secrets.TOKEN }}
+        run: uv run pytest -m regression --ignore=tests/web/selenium
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-allure-results
+          path: test-result/allure-results/
+          retention-days: 14
+
+      - name: Upload traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-traces
+          path: test-result/traces/
+          retention-days: 14
+
   publish-report:
     runs-on: ubuntu-latest
     needs: [ api-tests, smoke-tests, regression-tests ]
     if: always() && (needs.api-tests.result != 'skipped' ||
       needs.smoke-tests.result != 'skipped' ||
       needs.regression-tests.result != 'skipped')
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Download  api Allure results
+      - name: Download api Allure results
         if: needs.api-tests.result != 'skipped'
         uses: actions/download-artifact@v4
         with:
@@ -125,15 +212,99 @@ jobs:
       - name: Prepare Pages content
         run: |
           mkdir -p pages
-          if [ -f report/api/report.html ]; then
-            cp report/api/report.html pages/index.html
-          fi
-          if [ -f report/smoke/report.html ]; then
-            cp report/smoke/report.html pages/index.html
-          fi
-          if [ -f report/regression/report.html ]; then
-            cp report/regression/report.html pages/index.html
-          fi
+          cat << 'EOF' > pages/index.html
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>E2E Test Reports</title>
+              <style>
+                  body {
+                      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                      background-color: #0f172a;
+                      color: #e2e8f0;
+                      margin: 0;
+                      padding: 0;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      min-height: 100vh;
+                  }
+                  .container {
+                      background: rgba(30, 41, 59, 0.7);
+                      backdrop-filter: blur(12px);
+                      border-radius: 20px;
+                      padding: 40px;
+                      box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.4);
+                      border: 1px solid rgba(255, 255, 255, 0.08);
+                      max-width: 500px;
+                      width: 100%;
+                      text-align: center;
+                  }
+                  h1 {
+                      color: #38bdf8;
+                      margin-bottom: 30px;
+                      font-size: 2.2rem;
+                      font-weight: 800;
+                      letter-spacing: -0.025em;
+                  }
+                  .report-card {
+                      background: rgba(15, 23, 42, 0.6);
+                      border: 1px solid rgba(255, 255, 255, 0.05);
+                      border-radius: 14px;
+                      padding: 22px;
+                      margin: 16px 0;
+                      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                      text-decoration: none;
+                      display: block;
+                      color: #e2e8f0;
+                      text-align: left;
+                  }
+                  .report-card:hover {
+                      background: rgba(56, 189, 248, 0.1);
+                      border-color: #38bdf8;
+                      transform: translateY(-2px);
+                      box-shadow: 0 8px 20px rgba(56, 189, 248, 0.1);
+                  }
+                  .report-title {
+                      font-size: 1.3rem;
+                      font-weight: 700;
+                      margin-bottom: 6px;
+                      color: #f1f5f9;
+                  }
+                  .report-card:hover .report-title {
+                      color: #38bdf8;
+                  }
+                  .report-desc {
+                      font-size: 0.9rem;
+                      color: #94a3b8;
+                      line-height: 1.4;
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <h1>Test Automation Reports</h1>
+          
+                  <a href="allure/api/index.html" class="report-card">
+                      <div class="report-title">API Tests</div>
+                      <div class="report-desc">Allure report for backend API integration and suite controller tests.</div>
+                  </a>
+          
+                  <a href="allure/smoke/index.html" class="report-card">
+                      <div class="report-title">Smoke Tests</div>
+                      <div class="report-desc">Allure report for critical path sanity checks and login flows.</div>
+                  </a>
+          
+                  <a href="allure/regression/index.html" class="report-card">
+                      <div class="report-title">Regression Tests</div>
+                      <div class="report-desc">Allure report covering the full coverage regression suite.</div>
+                  </a>
+              </div>
+          </body>
+          </html>
+          EOF
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

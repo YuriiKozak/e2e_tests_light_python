@@ -1,11 +1,8 @@
-import re
 from pathlib import Path
-from typing import Any, Generator, cast
+from typing import Any, cast
 
-import allure
 import pytest
 import requests
-from playwright.sync_api import Page
 
 from src.api.client import ApiClient
 from src.api.controllers.project_controller import ProjectController
@@ -78,77 +75,29 @@ def api_client(configs: Configs) -> ApiClient:
 
 
 @pytest.fixture(scope="function")
-def api_login(
-    configs: Configs, api_client: ApiClient, app: Application, request
-) -> Generator[None, None, None]:
+def api_login(configs: Configs, api_client: ApiClient, app: Application) -> None:
     """
     Fixture to perform user login via API.
     Saves authentication state upon successful login or bypasses if already logged in.
-    Also records a Playwright trace saved to test-result/traces/{test_name}_trace.zip.
     """
-    # Start tracing
-    app.page.context.tracing.start(screenshots=True, snapshots=True, sources=True)
-
-    try:
-        if STORAGE_STATE_PATH.exists():
-            app.page.goto("/projects")
-        else:
-            # 1. Login via API to get the JWT token (as requested)
-            jwt_token = api_client.login(configs.email, configs.password)
-
-            # 2. Get the session cookies to authenticate browser navigation
-            cookies = api_client.get_session_cookies(configs.email, configs.password)
-
-            # 3. Add cookies to the browser context
-            app.page.context.add_cookies(cast(Any, cookies))
-
-            # 4. Navigate to /projects
-            app.page.goto("/projects")
-
-            # 5. Set the JWT token in localStorage as well (so client-side JS has it)
-            app.page.evaluate(f"window.localStorage.setItem('jwt', '{jwt_token}');")
-
-            # 6. Save authentication state to storage state path
-            STORAGE_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-            app.page.context.storage_state(path=STORAGE_STATE_PATH)
-
-        yield
-    finally:
-        # Stop tracing and save it ONLY if the test failed
-        failed = False
-        if hasattr(request.node, "rep_call") and request.node.rep_call.failed:
-            failed = True
-        elif hasattr(request.node, "rep_setup") and request.node.rep_setup.failed:
-            failed = True
-
-        if failed:
-            clean_name = re.sub(r'[\\/*?:"<>|]', "_", request.node.name)
-            trace_path = Path("test-result/traces") / f"{clean_name}_trace.zip"
-            trace_path.parent.mkdir(parents=True, exist_ok=True)
-            app.page.context.tracing.stop(path=str(trace_path))
-        else:
-            app.page.context.tracing.stop()
-
-
-def stop_tracing_on_failure(page: Page, request: pytest.FixtureRequest) -> None:
-    """Stop tracing and save only if test failed. Attaches screenshot and trace to Allure."""
-    failed = hasattr(request.node, "rep_call") and request.node.rep_call.failed
-    if failed:
-        allure.attach(
-            page.screenshot(),
-            name="screenshot",
-            attachment_type=allure.attachment_type.PNG,
-        )
-
-        trace_path = TRACES_DIR / f"{request.node.name}.zip"
-        trace_path.parent.mkdir(parents=True, exist_ok=True)
-        page.context.tracing.stop(path=trace_path)
-
-        allure.attach.file(
-            str(trace_path),
-            name="trace",
-            extension="zip",
-            attachment_type="application/vnd.allure.playwright-trace",
-        )
+    if STORAGE_STATE_PATH.exists():
+        app.page.goto("/projects")
     else:
-        page.context.tracing.stop()
+        # 1. Login via API to get the JWT token (as requested)
+        jwt_token = api_client.login(configs.email, configs.password)
+
+        # 2. Get the session cookies to authenticate browser navigation
+        cookies = api_client.get_session_cookies(configs.email, configs.password)
+
+        # 3. Add cookies to the browser context
+        app.page.context.add_cookies(cast(Any, cookies))
+
+        # 4. Navigate to /projects
+        app.page.goto("/projects")
+
+        # 5. Set the JWT token in localStorage as well (so client-side JS has it)
+        app.page.evaluate(f"window.localStorage.setItem('jwt', '{jwt_token}');")
+
+        # 6. Save authentication state to storage state path
+        STORAGE_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        app.page.context.storage_state(path=STORAGE_STATE_PATH)
