@@ -1,8 +1,9 @@
 import pytest
 from faker import Faker
 
-from src.api.controllers import SuiteController, TestController
-from src.api.models import Project
+from src.api.controllers.suite_controller import SuiteController
+from src.api.controllers.test_controller import TestController
+from src.api.models.project import Project
 
 fake = Faker()
 
