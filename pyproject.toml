@@ -11,7 +11,7 @@ dependencies = [
     "charset-normalizer>=3.4.7",
     "colorama>=0.4.6",
     "email-validator>=2.3.0",
-    "faker>=40.23.0",
+    "faker>=40.27.0",
     "greenlet>=3.5.3",
     "idna>=3.18",
     "iniconfig>=2.3.0",
@@ -67,7 +67,7 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 [dependency-groups]
 dev = [
     "ruff>=0.15.20",
-    "datamodel-code-generator>=0.66.0"
+    "datamodel-code-generator>=0.66.2"
 ]
 
 [tool.datamodel-codegen]
